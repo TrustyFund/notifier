@@ -14,6 +14,7 @@
     "body-parser": "^1.18.2",
     "express": "^4.16.2",
     "firebase-admin": "^5.8.2",
-    "fs": "0.0.1-security"
+    "fs": "0.0.1-security",
+    "nodemailer": "^4.4.2"
   }
 }

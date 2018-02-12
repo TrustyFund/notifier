@@ -4,12 +4,12 @@ const operationTypesDictonary = ChainTypes.operations;
 var fcmAdmin = require('firebase-admin');
 var express = require('express');
 var bodyParser = require('body-parser');
+const fs = require('fs');
+var nodemailer = require('nodemailer');
 
-var accountsDist=['1.2.596737','1.2.512210'];
 var myAccount='1.2.596737';
 
 var fcmConfig = require("./trusty-informator-firebase-adminsdk-808sd-9702018d1f.json");
-var registrationToken="d-VzUD40KFY:APA91bENnWv1l3cYVrlUcyi6doKBjfkicC4Ufna4_Z8qdqbU336jSScEi8-zH5iTgi77kKSGww8bZRHW0JsQMv22KZp0CPR1T4VTVBp64RqutJ6Pa8tW4KJGKZR3WIAIumNgZVvu4Dol";
 
 var tokenToSend;
 
@@ -35,33 +35,29 @@ fcmAdmin.initializeApp({
 });
 
 
-var payload={
+var message={
+	notification:{
+		title:"",
+		body:""
+	},
 	data:{
-		"title":"batya",
-		"body":"s dnuhou"
+		message:""
 	}
 };
 
-var message={
-	notification:{
-		title:"noti totle",
-		body:"noti body"
-	},
-	data:{
-		message:"huessage"
+var transporter = nodemailer.createTransport({
+	service:'yandex',
+	auth:{
+		user: 'your@gmail.com',
+		pass: 'your_pass'
 	}
-}
-console.log(message['notification']);
+});
 
-fcmAdmin.messaging().sendToDevice(registrationToken, message)
-		.then(function(response){
-			console.log("message is sent", response);
-		})
-		.catch(function (error){
-			console.log("Error sending message:", error);
-		});
+var mailOptios={
+		from: 'from@gmail.com',
+		to: 'to@gmail.com',
+};
 
-console.log("test");
 
 var api = {
 	connect: () => {
@@ -92,58 +88,64 @@ var api = {
 
 
 api.connect().then((result)=>{
-	Apis.instance().db_api().exec("set_pending_transaction_callback",[writeLog]);
-
+	Apis.instance().db_api().exec("set_subscribe_callback",[fetchSubsribeCallback,true]);
 });
 
-function writeLog(msg){
-	var jsoned=JSON.stringify(msg);
-	fetchMsgOperations(msg);
+
+
+function fetchSubsribeCallback(msg){
+	msg[0].forEach(function(value){
+		if(Array.isArray(value)){
+			value.forEach(function(singeOp){
+				checkOperations(singeOp);
+			})
+		}
+		else{
+			checkOperations(value);
+
+		}
+	})
 }
 
 
-var entriesArray=Array();
-for(var value in Object.values(operationTypesDictonary)){
-	entriesArray.push({'value':value, 'checked':false});
+function checkOperations(operation){
+	if(operation['id']){
+		if(operation['id'].includes('1.11.')){
+			if(operation['op'][0]===operationTypesDictonary['transfer']){
+				prepareForTransferNotification(operation['op'][1]);
+
+			}
+		}
+	}
 }
 
-function fetchMsgOperations(msg){
-	var operationsValue=JSON.stringify(msg[0]["operations"][0][0]);
-	if(operationsValue==='0'){
-		var fromAccountId = msg[0]['operations'][0][1]['from'];
-		var toAccountId = msg[0]['operations'][0][1]['to'];
+function prepareForTransferNotification(source){
+	var fromAccountId = source['from'];
+	var toAccountId = source['to'];
 
-		var pass = false;
-		var sender = false;  
-		console.log(fromAccountId, myAccount);
+	var transferAssetId = source['amount']['asset_id'];
+	var feeAssetId = source['fee']['asset_id'];
 
-		
-		if(fromAccountId === myAccount){
+	var transferAmount = source['amount']['amount'];
+	var feeAmount = source['fee']['amount'];
+
+	var accountPromise = api.fetchAccounts([fromAccountId, toAccountId]);			
+	var assetPromise = api.fetchAssets([transferAssetId, feeAssetId]);
+
+	var sender=false;
+
+	if(fromAccountId === myAccount){
 			sender = true;
-		}
-		else if(toAccountId === myAccount){
-			sender = false;
-		}
-		else
-			return;
-
-		console.log(fromAccountId,toAccountId);
-		
+	}
+	else if(toAccountId === myAccount){
+		sender = false;
+	}
+	else
+		return;
 
 
-		var transferAssetId = msg[0]['operations'][0][1]['amount']['asset_id'];
-		var transferAmount = msg[0]['operations'][0][1]['amount']['amount'];
-
-		var feeAssetId = msg[0]['operations'][0][1]['fee']['asset_id'];
-		var feeAmount = msg[0]['operations'][0][1]['fee']['amount'];
-
-		
-		var assetPromise = api.fetchAssets([transferAssetId, feeAssetId]);
-		var accountPromise = api.fetchAccounts([fromAccountId, toAccountId]);
-
-		
-
-		Promise.all([assetPromise, accountPromise]).then(values=>{
+	Promise.all([assetPromise, accountPromise])
+		.then(values=>{
 			var transferAssetName = values[0][0]['symbol'];
 			var transferAssetPrecision = values[0][0]['precision'];
 
@@ -152,27 +154,39 @@ function fetchMsgOperations(msg){
 
 			var fromAccountName = values[1][0]['name'];
 			var toAccountName = values[1][1]['name'];
-
-
-			sendNotification({'transferAssetName': transferAssetName,
+			
+			
+			var body = createTransferPushBody({'transferAssetName': transferAssetName,
 								'transferAssetPrecision': transferAssetPrecision,
 								'transferAmount': transferAmount,
 								'feeAssetName': feeAssetName,
 								'feeAssetPrecision': feeAssetPrecision,
 								'feeAmount': feeAmount,
-								'fromAccountName': fromAccountName,
+								'bofromAccountName': fromAccountName,
 								'toAccountName': toAccountName,
-								'sender': sender});
-		});
+								'sender': sender})
+
+			sendNotification('Transfer', body);
+		});	
+
+}
+
+function createTransferPushBody(msg){
+	var transferValue=getRealBalance(msg['transferAmount'], msg['transferAssetPrecision'])+' '+msg['transferAssetName'];
+	if(msg['sender']){
+		return transferValue +' sent to '+ msg['toAccountName'];
+	}
+	else{
+		return transferValue + ' received from '+ msg['fromAccountName'];
 	}
 }
 
-function sendNotification(msg){
+function sendNotification(operationType, msg){
 	if(!tokenToSend)
 		return;
 
-	message['notification']['title'] = 'Transfer';
-	message['notification']['body'] = createPushBody(msg); 
+	message['notification']['title'] = operationType;
+	message['notification']['body'] = msg; 
 	fcmAdmin.messaging().sendToDevice(tokenToSend, message)
 		.then(function(response){
 			console.log("message is sent", response);
@@ -180,7 +194,10 @@ function sendNotification(msg){
 		.catch(function (error){
 			console.log("Error sending message:", error);
 		});
+
+	sendEmail("Transfer", msg);
 }
+
 
 function createPushBody(msg){
 	var transferValue=getRealBalance(msg['transferAmount'], msg['transferAssetPrecision'])+' '+msg['transferAssetName'];
@@ -196,7 +213,16 @@ function getRealBalance(amount, precision){
 	return amount / (10 ** precision);
 }
 
-function findInArray(value){
-	return accountsDist.includes(value);
-}
 
+function sendEmail(theme, body){
+	mailOptios['subject'] =	theme;
+	mailOptios['text'] = body;
+
+	transporter.sendMail(mailOptios, function(error, info){
+		if (error) {
+			console.log(error);
+		} else {
+			console.log('Email sent: ' + info.response);
+			}
+	});
+}
