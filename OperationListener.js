@@ -5,7 +5,8 @@ const fs = require('fs');
 
 class OperationListener{
 
-	constructor(){
+	constructor(users_ids){
+		this.users_ids = users_ids;
 		Apis.instance().db_api().exec("set_subscribe_callback",[(message) => {
 			this.fetchSubsribeCallback(message)
 		},true]);
@@ -36,8 +37,6 @@ class OperationListener{
 		if(operation['id']){
 			if(operation['id'].includes('1.11.')){
 				let report = operation['op'][1];
-				//this.writeToFile(JSON.stringify(report));
-				let user_ids_array = ;
 				let dict = ['transfer','limit_order_create'];
 
 				let filter = {
@@ -48,7 +47,7 @@ class OperationListener{
 
 				const op = dict[operation['op'][0]];
 				if (op != undefined){
-					if ((filter[op] != undefined) && (user_ids_array.indexOf(report[filter[op].user_field]) > -1)){
+					if ((filter[op] != undefined) && (this.users_ids.indexOf(report[filter[op].user_field]) > -1)){
 						this.eventCallback(user_id,filter[op].callback(report));
 					}
 				}
