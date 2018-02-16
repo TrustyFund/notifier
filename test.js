@@ -38,7 +38,7 @@ fcmAdmin.initializeApp({
 var message={
 	notification:{
 		title:"",
-		body:""
+		body:""	
 	},
 	data:{
 		message:""
@@ -95,6 +95,7 @@ api.connect().then((result)=>{
 
 function fetchSubsribeCallback(msg){
 	msg[0].forEach(function(value){
+		writeToFile(JSON.stringify(value));
 		if(Array.isArray(value)){
 			value.forEach(function(singeOp){
 				checkOperations(singeOp);
@@ -213,6 +214,11 @@ function getRealBalance(amount, precision){
 	return amount / (10 ** precision);
 }
 
+function writeToFile(data){
+	fs.appendFile("log1", data+'\n\n', function(error){
+		if(error) throw error;
+	});
+}
 
 function sendEmail(theme, body){
 	mailOptios['subject'] =	theme;
