@@ -11,12 +11,11 @@ var notificationSender = new NotificationSender('./trusty-informator-firebase-ad
 
 var apiConnection = new ApiConnection();
 var operationListener;
-apiConnection.connect()
-	.then((result)=>{
-		let emails = {'1.2.512210':'anlopan@gmail.com'};
-		operationListener = new OperationListener(['1.2.512210']);
-		operationListener.setEventCallback((notification) => {
-			let {user_id, message} = notification;
-			notificationSender.sendMessage(message,emails[user_id],'email');
-		});
+apiConnection.connect().then((result)=>{
+	let emails = {'1.2.512210':'anlopan@gmail.com'};
+	operationListener = new OperationListener(['1.2.512210']);
+	operationListener.setEventCallback((notification) => {
+		let {user_id, message} = notification;
+		notificationSender.sendMessage(message,emails[user_id],'email');
 	});
+});
