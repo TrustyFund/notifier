@@ -46,8 +46,8 @@ class NotificationSender{
 		var emailOptions = {
 			from: 'lobovoiudar@yandex.ru',
 			to: this.getClientEmail(client),
-			subject: emailMessage.subject,
-			body: emailMessage.body,
+			subject: message.subject,
+			body: message.body,
 		}
 		this.emailTransporter.sendMail(emailOptions, function (error , info) {
 			if (error) {
