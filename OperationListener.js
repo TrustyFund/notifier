@@ -11,6 +11,10 @@ class OperationListener{
 		},true]);
 	}
 
+	setEventCallback(callback){
+		this.eventCallback = callback;
+	}
+
 	fetchSubsribeCallback(message){
 		message[0].forEach((value)=>{
 				this.checkHistoryOperation(value);
@@ -33,7 +37,7 @@ class OperationListener{
 			if(operation['id'].includes('1.11.')){
 				let report = operation['op'][1];
 				//this.writeToFile(JSON.stringify(report));
-				let user_ids_array = ['1.3.225','1.2.596737','1.2.512210'];
+				let user_ids_array = ;
 				let dict = ['transfer','limit_order_create'];
 
 				let filter = {
@@ -45,7 +49,7 @@ class OperationListener{
 				const op = dict[operation['op'][0]];
 				if (op != undefined){
 					if ((filter[op] != undefined) && (user_ids_array.indexOf(report[filter[op].user_field]) > -1)){
-						filter[op].callback(report);
+						this.eventCallback(user_id,filter[op].callback(report));
 					}
 				}
 			}
