@@ -71,7 +71,7 @@ class NotificationSender {
   sendPush(message, client) {
     const clientToken = this.getClientToken(client);
     const pushMessage = this.generatePushMessage(message);
-    fcmServer.messaging().sendToDevice(clientToken, pushMessage)
+    this.fcmServer.messaging().sendToDevice(clientToken, pushMessage)
       .then((response) => {
         console.log('message is sent', response);
       })
