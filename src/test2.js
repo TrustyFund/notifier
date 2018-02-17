@@ -1,5 +1,5 @@
 const { Apis } = require('bitsharesjs-ws');
-const { PrivateKey, key, Aes } = require('bitsharesjs');
+const { key } = require('bitsharesjs');
 
 const brainkey = 'glink omental webless pschent knopper brumous scarry were wasting isopod raper barbas maco kirn tegua mitome';
 

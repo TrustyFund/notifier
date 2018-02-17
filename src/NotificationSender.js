@@ -7,10 +7,10 @@ class NotificationSender {
     this.createEmailTransporter(emailTransporterRequired);
   }
 
-  upFCMServer(fcmAuthFile) {
+  static upFCMServer(fcmAuthFile) {
     fcmAdmin.initializeApp({
       credential: fcmAdmin.credential.cert(fcmAuthFile),
-		  	databaseURL: 'https://trusty-informator.firebaseio.com',
+      databaseURL: 'https://trusty-informator.firebaseio.com',
     });
   }
 
@@ -44,8 +44,8 @@ class NotificationSender {
     const emailOptions = {
       from: 'lobovoiudar@yandex.ru',
       to: this.getClientEmail(client),
-      subject: message.subject,
-      body: message.body,
+      subject: emailMessage.subject,
+      body: emailMessage.body,
     };
     this.emailTransporter.sendMail(emailOptions, (error, info) => {
       if (error) {

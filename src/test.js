@@ -32,7 +32,7 @@ host.listen(3000, () => {
 
 fcmAdmin.initializeApp({
   credential: fcmAdmin.credential.cert(fcmConfig),
-  	databaseURL: 'https://trusty-informator.firebaseio.com'
+  databaseURL: 'https://trusty-informator.firebaseio.com'
 });
 
 
