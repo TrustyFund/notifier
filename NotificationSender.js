@@ -42,7 +42,8 @@ class NotificationSender{
 	}
 
 	sendEmail(message , client){
-		var emailMessage=this.generateEmailMessage(message);
+		console.log(message);
+		//var emailMessage=this.generateEmailMessage(message);
 		var emailOptions = {
 			from: 'lobovoiudar@yandex.ru',
 			to: this.getClientEmail(client),
@@ -62,14 +63,7 @@ class NotificationSender{
 		return 'lobovoiudar@yandex.ru'
 	}
 
-	generateEmailMessage(message){
-		var emailMessage={
-			subject:'huyabject',
-			body:'huyody',
-		}
-		return emailMessage;
-	}
-
+	
 	sendPush(message, client){
 		var clientToken = this.getClientToken(client);
 		var pushMessage = this.generatePushMessage(message);

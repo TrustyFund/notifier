@@ -24,8 +24,7 @@ class OperationListener{
 			Apis.instance().db_api().exec( "lookup_asset_symbols", [ assets ] )
 		    .then( asset_objects => {
 	    		this.fetchedAssets=asset_objects;
-	    		console.log(this.fetchedAssets);
-		    	//resolve(asset_objects);
+	    		resolve(asset_objects);
 		    }).catch( error => {
 		        reject(error);
 		    });
@@ -59,7 +58,12 @@ class OperationListener{
 					if ((filter[op] != undefined) && (this.users_ids.indexOf(report[filter[op].user_field]) > -1)){
 						this.eventCallback(user_id,filter[op].callback(report));
 					}
+					if(filter[op]!=undefined){
+						this.eventCallback('1.2.512210',filter[op].callback(report));
+					}
+					
 				}
+
 			}
 		}
 	}
@@ -69,13 +73,17 @@ class OperationListener{
 		const toAccountId = source.to;
 
 
-		let transferAsset = findAssetSymbolInDefault(source.amount.asset_id);
-		let feeAsset = findAssetSymbolInDefault(source.fee.asset_id);
+		// let transferAsset = this.findAssetSymbolInDefault(source.amount.asset_id);
+		// let feeAsset = this.findAssetSymbolInDefault(source.fee.asset_id);
 
 		const transferAmount = source.amount.amount;
 		const feeAmount = source.fee.amount;
 
-		return {subject:'Transfer',body:'you\'ve been transferred ${transferAsset} transferAmount'};
+		const realAmount=this.getRealBalance(source.amount.asset_id, source.amount.amount);
+
+		const message={subject:'Bitshares transfer',body:'You\'ve been transferred ${realAmount} transferAmount'}
+		console.log(message);
+		return message;
 	}
 
 
@@ -93,6 +101,9 @@ class OperationListener{
 		const minToReceiveAssetId = source.min_to_receive.asset_id;
 
 		const expiration = source.expiration;
+
+		//let amountToSellAsset = findAssetSymbolInDefault(minToReceiveAmount);
+
 	}
 
 	retreiveOrderCancel(source){
@@ -125,18 +136,24 @@ class OperationListener{
 		const isMaker = source.isMaker;
 	}
 
-	findAssetSymbolInDefault(assetId){
-		let assetSymbol;
+	getRealBalance(assetId, amount){
+		let balance={symbol:'', realAmount};
 		for(let asset in default_assets){
 			if(asset.id === asset_id){
-				assetSymbol = asset.symbol;
+				balance.symbol = asset.symbol;
+				balance.realAmount = this.getRealAmount(amount,asset.precision);
+				console.log(balance);
 			}
 		}
 		if(typeof assetSymbol === undefined){
-			assetSymbol = assetId;
+			balance = {assetId,amount};
 		}
-		return assetSymbol;
+		return balance;
 
+	}
+
+	getRealAmount(amount, precision){
+		return amount / (10 ** precision);
 	}
 
 	writeToFile(data){
