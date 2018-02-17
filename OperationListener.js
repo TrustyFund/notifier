@@ -3,13 +3,33 @@ const {ChainTypes} = require('bitsharesjs');
 const operationTypesDictonary = ChainTypes.operations;
 const fs = require('fs');
 
+const default_assets = ['BTS', 'BTC', ];
+
 class OperationListener{
+
 
 	constructor(users_ids){
 		this.users_ids = users_ids;
 		Apis.instance().db_api().exec("set_subscribe_callback",[(message) => {
 			this.fetchSubsribeCallback(message)
 		},true]);
+
+		this.fetchAssets(default_assets);
+	}
+
+
+
+	fetchAssets (assets){
+		return new Promise((resolve,reject) => {
+			Apis.instance().db_api().exec( "lookup_asset_symbols", [ assets ] )
+		    .then( asset_objects => {
+	    		this.fetchedAssets=asset_objects;
+	    		console.log(this.fetchedAssets);
+		    	//resolve(asset_objects);
+		    }).catch( error => {
+		        reject(error);
+		    });
+		})
 	}
 
 	setEventCallback(callback){
@@ -19,17 +39,6 @@ class OperationListener{
 	fetchSubsribeCallback(message){
 		message[0].forEach((value)=>{
 				this.checkHistoryOperation(value);
-/*
-			if(Array.isArray(value)){
-							
-
-				value.forEach((singeOp)=>{
-					this.checkHistoryOperation(singeOp);
-				})
-			}
-			else{
-				this.checkHistoryOperation(value);
-			}*/
 		})
 	}
 
@@ -56,22 +65,22 @@ class OperationListener{
 	}
 
 	retreiveTransfer(source){
-		this.writeToFile('tranfer\n'+JSON.stringify(source));
-
 		const fromAccountId = source.from;
 		const toAccountId = source.to;
 
-		const transferAssetId = source.amount.asset_id;
-		const feeAssetId = source.fee.asset_id;
+
+		let transferAsset = findAssetSymbolInDefault(source.amount.asset_id);
+		let feeAsset = findAssetSymbolInDefault(source.fee.asset_id);
 
 		const transferAmount = source.amount.amount;
 		const feeAmount = source.fee.amount;
 
-		console.log(source);
+		return {subject:'Transfer',body:'you\'ve been transferred ${transferAsset} transferAmount'};
 	}
 
+
+
 	retreiveOrderCreate(source){
-		//this.writeToFile('create\n'+JSON.stringify(source));
 		const feeAmount = source.fee.amount;
 		const feeAssetId = source.fee.asset_id;
 
@@ -114,6 +123,20 @@ class OperationListener{
 		const quoteAssetId = source.fill_price.quote.asset_id;
 
 		const isMaker = source.isMaker;
+	}
+
+	findAssetSymbolInDefault(assetId){
+		let assetSymbol;
+		for(let asset in default_assets){
+			if(asset.id === asset_id){
+				assetSymbol = asset.symbol;
+			}
+		}
+		if(typeof assetSymbol === undefined){
+			assetSymbol = assetId;
+		}
+		return assetSymbol;
+
 	}
 
 	writeToFile(data){
