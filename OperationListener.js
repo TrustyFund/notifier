@@ -75,13 +75,12 @@ class OperationListener{
 		const transferAmount = source.amount.amount;
 		const feeAmount = source.fee.amount;
 
-		return 'you\'ve been transferred ${transferAsset} transferAmount';
+		return {subject:'Transfer',body:'you\'ve been transferred ${transferAsset} transferAmount'};
 	}
 
 
 
 	retreiveOrderCreate(source){
-		//this.writeToFile('create\n'+JSON.stringify(source));
 		const feeAmount = source.fee.amount;
 		const feeAssetId = source.fee.asset_id;
 
