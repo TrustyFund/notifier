@@ -29,7 +29,11 @@ Apis.instance('wss://dex.rnglab.org/ws', true).init_promise.then(() => {
         getAccountHistory(userId).then((history) => {
           history.forEach((item) => {
             if (item.op[1].memo) {
-              console.log(decryptMemo(ownerKey, item.op[1].memo));
+              const memoMessage = decryptMemo(ownerKey, item.op[1].memo);
+              if (memoMessage.startsWith('email:')) {
+                const email = memoMessage.replace('email:', '');
+                console.log('user_id: ', item.op[1].from, ' email: ', email);
+              }
             }
           });
         });
