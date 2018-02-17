@@ -12,8 +12,7 @@ function decryptMemo(privateKey, memo) {
     privateKey,
     memo.from,
     memo.nonce,
-    memo.message,
-    true
+    memo.message
   ).toString('utf-8');
 }
 
@@ -30,7 +29,7 @@ Apis.instance('wss://dex.rnglab.org/ws', true).init_promise.then(() => {
         getAccountHistory(userId).then((history) => {
           history.forEach((item) => {
             if (item.op[1].memo) {
-              console.log(decryptMemo(ownerKey,item.op[1].memo));
+              console.log(decryptMemo(ownerKey, item.op[1].memo));
             }
           });
         });
@@ -39,5 +38,3 @@ Apis.instance('wss://dex.rnglab.org/ws', true).init_promise.then(() => {
       }
     });
 });
-
-

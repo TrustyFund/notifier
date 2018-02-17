@@ -2,18 +2,16 @@ const { Apis } = require('bitsharesjs-ws');
 // const { ChainTypes } = require('bitsharesjs');
 
 // const operationTypesDictonary = ChainTypes.operations;
-const fs = require('fs');
+// const fs = require('fs');
 
 const defaultAssets = ['BTS', 'BTC'];
 
 class OperationListener {
   constructor(usersIds) {
     this.usersIds = usersIds;
-    Apis.instance().db_api().exec('set_subscribe_callback', [(message) => {
-      this.fetchSubsribeCallback(message);
-    }, true]);
+    Apis.instance().db_api().exec('set_subscribe_callback', [this.subsribeCallback.bind(this), true]);
     const that = this;
-    this.fetchAssets(defaultAssets).then(assetObjects => {
+    Apis.instance().db_api().exec('lookup_asset_symbols', [defaultAssets]).then(assetObjects => {
       that.setDefaultAssets(assetObjects);
     });
   }
@@ -24,26 +22,22 @@ class OperationListener {
     // console.log(this.fetchedAssets);
   }
 
-
-  static fetchAssets(assets) {
-    return Apis.instance().db_api().exec('lookup_asset_symbols', [assets]);
-  }
-
   setEventCallback(callback) {
     this.eventCallback = callback;
   }
 
-  fetchSubsribeCallback(message) {
-    message[0].forEach((value) => {
-      this.checkHistoryOperation(value);
+  subsribeCallback([operations]) {
+    operations.forEach((operation) => {
+      this.checkOperation(operation);
     });
   }
 
-  checkHistoryOperation(operation) {
+  checkOperation(operation) {
     if (operation.id) {
       if (operation.id.includes('1.11.')) {
-        const report = operation.op[1];
+        const [operationId, payload] = operation.op;
         const dict = ['transfer', 'limit_order_create'];
+        const opType = dict[operationId];
 
         const filter = {
           transfer: { user_field: 'to', callback: this.retreiveTransfer.bind(this) },
@@ -51,10 +45,9 @@ class OperationListener {
           fill_order: { user_field: 'account_id', callback: this.retreiveFillOrder.bind(this) }
         };
 
-        const op = dict[operation.op[0]];
-        if (op !== undefined) {
-          if ((filter[op] !== undefined) && (this.usersIds.indexOf(report[filter[op].user_field]) > -1)) {
-            this.eventCallback(report[filter[op].user_field], filter[op].callback(report));
+        if (opType !== undefined) {
+          if ((filter[opType] !== undefined) && (this.usersIds.indexOf(payload[filter[opType].user_field]) > -1)) {
+            this.eventCallback(payload[filter[opType].user_field], filter[opType].callback(payload));
           }
         }
       }
