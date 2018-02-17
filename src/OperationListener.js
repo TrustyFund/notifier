@@ -1,33 +1,32 @@
 const { Apis } = require('bitsharesjs-ws');
-const { ChainTypes } = require('bitsharesjs');
+// const { ChainTypes } = require('bitsharesjs');
 
-const operationTypesDictonary = ChainTypes.operations;
+// const operationTypesDictonary = ChainTypes.operations;
 const fs = require('fs');
 
-const default_assets = ['BTS', 'BTC', ];
+const defaultAssets = ['BTS', 'BTC'];
 
 class OperationListener {
-  constructor(users_ids) {
-    this.users_ids = users_ids;
+  constructor(usersIds) {
+    this.usersIds = usersIds;
     Apis.instance().db_api().exec('set_subscribe_callback', [(message) => {
       this.fetchSubsribeCallback(message);
     }, true]);
-
-    this.fetchAssets(default_assets);
+    const that = this;
+    this.fetchAssets(defaultAssets).then(assetObjects => {
+      that.setDefaultAssets(assetObjects);
+    });
   }
 
 
-  fetchAssets(assets) {
-    return new Promise((resolve, reject) => {
-      Apis.instance().db_api().exec('lookup_asset_symbols', [assets])
-		    .then(asset_objects => {
-	    		this.fetchedAssets = asset_objects;
-		    	// resolve(asset_objects);
-		    })
-        .catch(error => {
-		        reject(error);
-		    });
-    });
+  setDefaultAssets(assets) {
+    this.fetchedAssets = assets;
+    // console.log(this.fetchedAssets);
+  }
+
+
+  static fetchAssets(assets) {
+    return Apis.instance().db_api().exec('lookup_asset_symbols', [assets]);
   }
 
   setEventCallback(callback) {
@@ -53,9 +52,9 @@ class OperationListener {
         };
 
         const op = dict[operation.op[0]];
-        if (op != undefined) {
-          if ((filter[op] != undefined) && (this.users_ids.indexOf(report[filter[op].user_field]) > -1)) {
-            this.eventCallback(user_id, filter[op].callback(report));
+        if (op !== undefined) {
+          if ((filter[op] !== undefined) && (this.usersIds.indexOf(report[filter[op].user_field]) > -1)) {
+            this.eventCallback(report[filter[op].user_field], filter[op].callback(report));
           }
         }
       }
@@ -63,23 +62,38 @@ class OperationListener {
   }
 
   retreiveTransfer(source) {
-    const fromAccountId = source.from;
-    const toAccountId = source.to;
-
-
-    const transferAsset = findAssetSymbolInDefault(source.amount.asset_id);
-    const feeAsset = findAssetSymbolInDefault(source.fee.asset_id);
-
-    const transferAmount = source.amount.amount;
-    const feeAmount = source.fee.amount;
-  
-    const message={subject:'Bitshares transfer',body:'You\'ve been transferred ${realAmount} transferAmount'}
+    const value = this.getRealBalance(source.amount.asset_id, source.amount.amount);
+    const result = `You have been transferred ${value.symbol} ${value.amount}`;
+    const message = { subject: 'Bitshares transfer', body: result };
     console.log(message);
     return message;
   }
 
 
-  retreiveOrderCreate(source) {
+  getRealBalance(assetId, amount) {
+    const result = { symbol: '', amount: '' };
+    this.fetchedAssets.forEach((asset) => {
+      if (asset.id === assetId) {
+        result.symbol = asset.symbol;
+      } else {
+        result.symbol = 'some asset';
+      }
+      result.amount = this.getRealCost(amount, asset.precision);
+    });
+    return result;
+  }
+
+  static getRealCost(amount, precision) {
+    return amount / (10 ** precision);
+  }
+
+  /*writeToFile( data ) {
+    fs.appendFile('order_log', data + '\n\n', (error) => {
+      if (error) throw error;
+    });
+  }*/
+
+  retreiveOrderCreate (source) {
     const feeAmount = source.fee.amount;
     const feeAssetId = source.fee.asset_id;
 
@@ -123,25 +137,8 @@ class OperationListener {
 
     const isMaker = source.isMaker;
   }
-
-  findAssetSymbolInDefault(assetId) {
-    let assetSymbol;
-    for (const asset in default_assets) {
-      if (asset.id === asset_id) {
-        assetSymbol = asset.symbol;
-      }
-    }
-    if (typeof assetSymbol === undefined) {
-      assetSymbol = assetId;
-    }
-    return assetSymbol;
-  }
-
-  writeToFile(data) {
-    fs.appendFile('order_log', data + '\n\n', (error) => {
-      if (error) throw error;
-    });
-  }
 }
+
+
 
 module.exports = OperationListener;

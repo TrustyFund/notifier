@@ -40,6 +40,9 @@ class NotificationSender {
   }
 
   sendEmail(message, client) {
+    if (message === undefined)
+      return;
+
     const emailMessage = this.generateEmailMessage(message);
     const emailOptions = {
       from: 'lobovoiudar@yandex.ru',
