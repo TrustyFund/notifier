@@ -19,7 +19,6 @@ class OperationListener {
 
   setDefaultAssets(assets) {
     this.fetchedAssets = assets;
-    // console.log(this.fetchedAssets);
   }
 
   setEventCallback(callback) {
@@ -56,9 +55,19 @@ class OperationListener {
 
   retreiveTransfer(source) {
     const value = this.getRealBalance(source.amount.asset_id, source.amount.amount);
-    const result = `You have been transferred ${value.symbol} ${value.amount}`;
-    const message = { subject: 'Bitshares transfer', body: result };
-    console.log(message);
+    const message = { subject: 'Bitshares transfer', body: `You have been transferred ${value.symbol} ${value.amount}` };
+    return message;
+  }
+
+  retreiveFillOrder(source) {
+    // const isMaker = source.isMaker;
+    // const feeValue = this.getRealBalance(source.fee.asset_id, source.fee.amount);
+    const receivesValue = this.getRealBalance(source.receives.asset_id, source.receives.amount);
+    // const paysValue = this.getRealBalance(source.pays.asset_id, source.pays.amount);
+    const baseValue = this.getRealBalance(source.fill_price.base.asset_id, source.fill_price.base.amount);
+    const quoteValue = this.getRealBalance(source.fill_price.quote.asset_id, source.fill_price.quote.amount);
+
+    const message = { subject: 'Fill order', body: `Order has been filled \n\n You received ${receivesValue.amount} ${receivesValue.symbol} at price  ${baseValue.symbol} / ${quoteValue.symbol}` };
     return message;
   }
 
@@ -109,27 +118,7 @@ class OperationListener {
     const orderId = source.order;
   }
 
-  retreiveFillOrder(source) {
-    const feeAmount = source.fee.amount;
-    const feeAssetId = source.fee.asset_id;
 
-    const orderId = source.order_id;
-    const accountId = source.account_id;
-
-    const paysAmount = source.pays.amount;
-    const paysAssetId = source.pays.asset_id;
-
-    const receivesAmount = source.receives.amount;
-    const receivesAssetId = source.receives.asset_id;
-
-    const baseeAmount = source.fill_price.base.amount;
-    const baseAssetId = source.fill_price.base.asset_id;
-
-    const quoteAmount = source.fill_price.quote.amount;
-    const quoteAssetId = source.fill_price.quote.asset_id;
-
-    const isMaker = source.isMaker;
-  }
 }
 
 
