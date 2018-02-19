@@ -13,13 +13,13 @@ Apis.instance('wss://openledger.hk/ws', true).init_promise.then(async () => {
   const activeSubscriptions = await subscriptionManager.getActiveSubscriptions();
   const clientsIds = subscriptionManager.getClientsIds();
 
-  const operationListener = new OperationListener([serviceUserId,...clientsIds]);
+  const operationListener = new OperationListener([serviceUserId, ...clientsIds]);
   operationListener.setEventCallback((notification) => {
     const { userId, message } = notification;
-    if (userId === serviceUserId){
+    if (userId === serviceUserId) {
       // manage subscriptions here
-    }else{
-      notificationSender.sendMessage(message, emails[userId], 'email');
+    } else {
+      notificationSender.sendMessage(message, activeSubscriptions.email[userId], 'email');
     }
   });
 });
