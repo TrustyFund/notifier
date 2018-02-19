@@ -3,6 +3,27 @@ const { key, Aes } = require('bitsharesjs');
 
 
 class SubscriptionManager {
+  constructor(types){
+    this.types = types;
+    this.subscribedUsers = {};
+    this.unsubscribedUsers = {};
+    this.destinations = {};
+
+    types.forEach((item) => {
+      this.subscribedUsers[item] = [];
+      this.unsubscribedUsers[item] = [];
+      this.destinations[item] = {};
+    })
+  }
+
+  getClientsIds() {
+    let clientsIds = [];
+    for (let destinationType of this.types){
+      clientsIds = merge(clientsIds,this.subscribedUsers[destinationType]);
+    }
+    return clientsIds;
+  }
+
   async setServiceUser(brainkey) {
     const normalizedBrainkey = key.normalize_brainKey(brainkey);
     const ownerKey = key.get_brainPrivateKey(normalizedBrainkey, 1);
@@ -13,18 +34,8 @@ class SubscriptionManager {
     return userId;
   }
 
-  async getActiveSubscriptions(types) {
+  async getActiveSubscriptions() {
     const allHistory = await this.getAllHistory();
-    let subscribedUsers = {};
-    let unsubscribedUsers = {};
-    let destinations = {};
-
-    types.forEach((item) => {
-      subscribedUsers[item] = [];
-      unsubscribedUsers[item] = [];
-      destinations[item] = {};
-    })
-
     allHistory.forEach((item) => {
       if (item.op[1].memo){
         const message = decryptMemo(this.ownerKey, item.op[1].memo);
@@ -33,17 +44,17 @@ class SubscriptionManager {
         if (action && data) {
           // Need to join rightside because android token has same devider
           data = data.join('');
-          if (action === 'stop' && types.includes(data)) {
-            unsubscribedUsers[data].push(clientId);
+          if (action === 'stop' && this.types.includes(data)) {
+            this.unsubscribedUsers[data].push(clientId);
           } 
-          if (types.includes(action) && !unsubscribedUsers[action].includes(clientId) && !subscribedUsers[action].includes(clientId)){
-            subscribedUsers[action].push(clientId);
-            destinations[action][clientId] = data;
+          if (this.types.includes(action) && !this.unsubscribedUsers[action].includes(clientId) && !this.subscribedUsers[action].includes(clientId)){
+            this.subscribedUsers[action].push(clientId);
+            this.destinations[action][clientId] = data;
           }
         }
       }
     });
-    return destinations;
+    return this.destinations;
   }
 
   async getAllHistory() {
@@ -77,6 +88,20 @@ function decryptMemo(privateKey, memo) {
     memo.nonce,
     memo.message
   ).toString('utf-8');
+}
+
+function merge(...args) {
+   let hash = {};
+   let arr = [];
+   for (let i = 0; i < args.length; i++) {
+      for (let j = 0; j < args[i].length; j++) {
+        if (hash[args[i][j]] !== true) {
+          arr[arr.length] = args[i][j];
+          hash[args[i][j]] = true;
+        }
+      }
+    }
+   return arr;
 }
 
 module.exports = SubscriptionManager;
