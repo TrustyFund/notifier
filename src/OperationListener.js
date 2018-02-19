@@ -7,9 +7,9 @@ class OperationListener {
   constructor(usersIds) {
     this.usersIds = usersIds;
     Apis.instance().db_api().exec('set_subscribe_callback', [this.subsribeCallback.bind(this), true]);
-    const that = this;
+    // const that = this;
     Apis.instance().db_api().exec('lookup_asset_symbols', [defaultAssets]).then(assetObjects => {
-      that.setDefaultAssets(assetObjects);
+      this.setDefaultAssets(assetObjects);
     });
   }
 
@@ -27,6 +27,7 @@ class OperationListener {
 
 
   setDefaultAssets(assets) {
+    console.log(assets);
     this.fetchedAssets = assets;
   }
 
