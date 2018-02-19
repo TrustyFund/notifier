@@ -10,6 +10,10 @@ class TokenReceiver {
     this.host = express();
     this.host.use(bodyParser.urlencoded({ extended: true }));
 
+    this.host.listen(this.port, () => {
+      console.log('server is running');
+    });
+    
     this.host.post('/token', (req, res) => {
       this.tokenToSend = req.body.token;
       this.userId = req.body.userId;
@@ -21,10 +25,6 @@ class TokenReceiver {
       res.send(JSON.stringify({
         token: 'OK' || null,
       }));
-    });
-
-    this.host.listen(3000, () => {
-      console.log('server is running');
     });
   }
 }
