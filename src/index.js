@@ -4,6 +4,7 @@ const OperationListener = require('./OperationListener');
 const SubscriptionManager = require('./SubscriptionManager');
 const config = require('../config');
 
+
 const notificationSender = new NotificationSender('./trusty-informator-firebase-adminsdk-808sd-9702018d1f.json', config.emailTransport);
 
 Apis.instance('wss://openledger.hk/ws', true).init_promise.then(async () => {

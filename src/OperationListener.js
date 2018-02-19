@@ -1,10 +1,8 @@
 const { Apis } = require('bitsharesjs-ws');
-// const { ChainTypes } = require('bitsharesjs');
+const Utils = require('./Utils');
 
-// const operationTypesDictonary = ChainTypes.operations;
-// const fs = require('fs');
-
-const defaultAssets = ['BTS', 'BTC'];
+const defaultAssets = ['BTS', 'BTC', 'OPEN.BTC'];
+const utils = new Utils();
 
 class OperationListener {
   constructor(usersIds) {
@@ -47,8 +45,10 @@ class OperationListener {
     if (operation.id) {
       if (operation.id.includes('1.11.')) {
         const [operationId, payload] = operation.op;
-        const dict = ['transfer', 'limit_order_create'];
+        const dict = { 0: 'transfer', 4: 'fill_order' };
         const opType = dict[operationId];
+
+        // utils.writeToFile(JSON.stringify(operation));
 
         const filter = {
           transfer: { user_field: 'to', callback: this.retreiveTransfer.bind(this) },
@@ -58,7 +58,7 @@ class OperationListener {
 
         if (opType !== undefined) {
           if ((filter[opType] !== undefined) && (this.usersIds.indexOf(payload[filter[opType].user_field]) > -1)) {
-            this.eventCallback(payload[filter[opType].user_field], filter[opType].callback(payload));
+            this.eventCallback(payload[filter[opType].user_field], filter[opType].callback(operation));
           }
         }
       }
@@ -66,73 +66,52 @@ class OperationListener {
   }
 
   retreiveTransfer(source) {
-    const value = this.getRealBalance(source.amount.asset_id, source.amount.amount);
-    const message = { subject: 'Bitshares transfer', body: `You have been transferred ${value.symbol} ${value.amount}` };
+    const operation = source.op[1];
+    const transferAsset = this.findAsset(operation.amount.asset_id);
+    const value = utils.getRealCost(operation.amount.amount, transferAsset.precision);
+    const message = { subject: 'Bitshares transfer', body: `You have been transferred ${transferAsset.symbol} ${value}` };
     return message;
   }
 
-  retreiveFillOrder(source) {
-    // const isMaker = source.isMaker;
-    // const feeValue = this.getRealBalance(source.fee.asset_id, source.fee.amount);
-    const receivesValue = this.getRealBalance(source.receives.asset_id, source.receives.amount);
-    // const paysValue = this.getRealBalance(source.pays.asset_id, source.pays.amount);
-    const baseValue = this.getRealBalance(source.fill_price.base.asset_id, source.fill_price.base.amount);
-    const quoteValue = this.getRealBalance(source.fill_price.quote.asset_id, source.fill_price.quote.amount);
+  async retreiveFillOrder(source) {
+    const blockNum = source.block_num;
+    const trxInBlock = source.trx_in_block;
 
-    const message = { subject: 'Fill order', body: `Order has been filled \n\n You received ${receivesValue.amount} ${receivesValue.symbol} at price  ${baseValue.symbol} / ${quoteValue.symbol}` };
+    const { transactions } = await Apis.instance().db_api().exec('get_block', [blockNum]);
+    const myTransaction = transactions[trxInBlock];
+
+    const operation = source.op[1];
+    const isBid = myTransaction.operations[0][1].amount_to_sell.asset_id === myTransaction.operations[0][1].fee.asset_id;
+
+    const priceBase = (isBid) ? operation.receives : operation.pays;
+    const priceQuote = (isBid) ? operation.pays : operation.receives;
+    const amount = isBid ? operation.receives : operation.pays;
+
+    const receivedAmount = operation.fee.asset_id === amount.asset_id ? amount.amount - operation.fee.amount : amount.amount;
+
+    const fillOrderSide = isBid ? 'buy' : 'sell';
+
+    const orderAsset = this.findAsset(amount.asset_id);
+    const orderValue = { amount: utils.getRealCost(receivedAmount, orderAsset.precision), symbol: this.findAsset(amount.asset_id).symbol };
+
+    const baseAsset = this.findAsset(priceBase.asset_id);
+    const quoteAsset = this.findAsset(priceQuote.asset_id);
+    const price = utils.formatPrice(priceBase.amount / priceQuote.amount, baseAsset, quoteAsset);
+
+    const message = `${fillOrderSide} ${orderValue.amount} ${orderValue.symbol} at ${price} ${baseAsset.symbol}/${quoteAsset.symbol}`;
     return message;
   }
 
-
-  getRealBalance(assetId, amount) {
-    const result = { symbol: '', amount: '' };
+  findAsset(assetId) {
+    let findAsset;
     this.fetchedAssets.forEach((asset) => {
       if (asset.id === assetId) {
-        result.symbol = asset.symbol;
-      } else {
-        result.symbol = 'some asset';
+        findAsset = asset;
       }
-      result.amount = this.getRealCost(amount, asset.precision);
     });
-    return result;
+    return findAsset !== undefined ? findAsset : assetId;
   }
-
-  static getRealCost(amount, precision) {
-    return amount / (10 ** precision);
-  }
-
-  /*writeToFile( data ) {
-    fs.appendFile('order_log', data + '\n\n', (error) => {
-      if (error) throw error;
-    });
-  }*/
-
-  retreiveOrderCreate (source) {
-    const feeAmount = source.fee.amount;
-    const feeAssetId = source.fee.asset_id;
-
-    const seller = source.seller;
-
-    const amountToSell = source.amount_to_sell.amount;
-    const amountToSellAssetId = source.amount_to_sell.asset_id;
-
-    const minToReceiveAmount = source.min_to_receive.amount;
-    const minToReceiveAssetId = source.min_to_receive.asset_id;
-
-    const expiration = source.expiration;
-  }
-
-  retreiveOrderCancel(source) {
-    const feeAmount = source.fee.amount;
-    const feeAssetId = source.fee.asset_id;
-    const feePaymentAccounId = source.fee_paying_account;
-
-    const orderId = source.order;
-  }
-
-
 }
-
 
 
 module.exports = OperationListener;
