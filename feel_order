@@ -1,9 +1,0 @@
-sell:
-
-{"id":"1.11.140671096","op":[4,{"fee":{"amount":0,"asset_id":"1.3.861"},"order_id":"1.7.55133168","account_id":"1.2.383374","pays":{"amount":1000,"asset_id":"1.3.0"},"receives":{"amount":24,"asset_id":"1.3.861"},"fill_price":{"base":{"amount":623600,"asset_id":"1.3.861"},"quote":{"amount":24955689,"asset_id":"1.3.0"}},"is_maker":false}],"result":[0,{}],"block_num":24524142,"trx_in_block":5,"op_in_trx":0,"virtual_op":31035}
-
-
-
-buy:
-
-{"id":"1.11.140672488","op":[4,{"fee":{"amount":0,"asset_id":"1.3.0"},"order_id":"1.7.55133603","account_id":"1.2.383374","pays":{"amount":26,"asset_id":"1.3.861"},"receives":{"amount":1040,"asset_id":"1.3.0"},"fill_price":{"base":{"amount":"5009799908","asset_id":"1.3.0"},"quote":{"amount":125244997,"asset_id":"1.3.861"}},"is_maker":false}],"result":[0,{}],"block_num":24524193,"trx_in_block":3,"op_in_trx":0,"virtual_op":45709}
