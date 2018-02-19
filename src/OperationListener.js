@@ -1,8 +1,7 @@
 const { Apis } = require('bitsharesjs-ws');
-const Utils = require('./Utils');
+const { getRealCost, formatPrice } = require('./Utils');
 
 const defaultAssets = ['BTS', 'BTC', 'OPEN.BTC'];
-const utils = new Utils();
 
 class OperationListener {
   constructor(usersIds) {
@@ -48,8 +47,6 @@ class OperationListener {
         const dict = { 0: 'transfer', 4: 'fill_order' };
         const opType = dict[operationId];
 
-        // utils.writeToFile(JSON.stringify(operation));
-
         const filter = {
           transfer: { user_field: 'to', callback: this.retreiveTransfer.bind(this) },
           limit_order_create: { user_field: 'seller', callback: this.retreiveOrderCreate.bind(this) },
@@ -68,7 +65,7 @@ class OperationListener {
   retreiveTransfer(source) {
     const operation = source.op[1];
     const transferAsset = this.findAsset(operation.amount.asset_id);
-    const value = utils.getRealCost(operation.amount.amount, transferAsset.precision);
+    const value = getRealCost(operation.amount.amount, transferAsset.precision);
     const message = { subject: 'Bitshares transfer', body: `You have been transferred ${transferAsset.symbol} ${value}` };
     return message;
   }
@@ -92,11 +89,11 @@ class OperationListener {
     const fillOrderSide = isBid ? 'buy' : 'sell';
 
     const orderAsset = this.findAsset(amount.asset_id);
-    const orderValue = { amount: utils.getRealCost(receivedAmount, orderAsset.precision), symbol: this.findAsset(amount.asset_id).symbol };
+    const orderValue = { amount: getRealCost(receivedAmount, orderAsset.precision), symbol: this.findAsset(amount.asset_id).symbol };
 
     const baseAsset = this.findAsset(priceBase.asset_id);
     const quoteAsset = this.findAsset(priceQuote.asset_id);
-    const price = utils.formatPrice(priceBase.amount / priceQuote.amount, baseAsset, quoteAsset);
+    const price = formatPrice(priceBase.amount / priceQuote.amount, baseAsset, quoteAsset);
 
     const message = `${fillOrderSide} ${orderValue.amount} ${orderValue.symbol} at ${price} ${baseAsset.symbol}/${quoteAsset.symbol}`;
     return message;
