@@ -1,4 +1,5 @@
 const fs = require('fs');
+const { Aes } = require('bitsharesjs');
 
 function getRealCost(amount, precision) {
   return Math.abs(amount / (10 ** precision)).toFixed(9);
@@ -7,14 +8,42 @@ function getRealCost(amount, precision) {
 function writeToFile(data) {
   fs.appendFile('block_log', data + '\n\n', (error) => {
     if (error) throw error;
-  })
+  });
 }
 
 function formatPrice(price, base, quote) {
-  let precision_diff = base.precision - quote.precision;
-  price = (precision_diff > 0) ? price / Math.pow(10,precision_diff) : price * Math.pow(10,-precision_diff);    
-  return Math.abs(price).toFixed(7);
+  const precisionDifference = base.precision - quote.precision;
+  const realPrice = (precisionDifference > 0) ? price / (10 ** precisionDifference) : price * (10 ** -precisionDifference);
+  return Math.abs(realPrice).toFixed(7);
 }
-      
 
-module.exports = {getRealCost,getMarketID,writeToFile, formatPrice};
+function decryptMemo(privateKey, memo) {
+  return Aes.decrypt_with_checksum(
+    privateKey,
+    memo.from,
+    memo.nonce,
+    memo.message
+  ).toString('utf-8');
+}
+
+function mergeUniq(...args) {
+  const hash = {};
+  const arr = [];
+  for (let i = 0; i < args.length; i += 1) {
+    for (let j = 0; j < args[i].length; j += 1) {
+      if (hash[args[i][j]] !== true) {
+        arr[arr.length] = args[i][j];
+        hash[args[i][j]] = true;
+      }
+    }
+  }
+  return arr;
+}
+
+module.exports = {
+  getRealCost,
+  writeToFile,
+  formatPrice,
+  mergeUniq,
+  decryptMemo
+};

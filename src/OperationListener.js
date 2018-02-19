@@ -49,7 +49,6 @@ class OperationListener {
 
         const filter = {
           transfer: { user_field: 'to', callback: this.retreiveTransfer.bind(this) },
-          limit_order_create: { user_field: 'seller', callback: this.retreiveOrderCreate.bind(this) },
           fill_order: { user_field: 'account_id', callback: this.retreiveFillOrder.bind(this) }
         };
 

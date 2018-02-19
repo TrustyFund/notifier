@@ -1,5 +1,6 @@
 const { Apis } = require('bitsharesjs-ws');
-const { key, Aes } = require('bitsharesjs');
+const { key } = require('bitsharesjs');
+const { mergeUniq, decryptMemo } = require('./Utils');
 
 
 class SubscriptionManager {
@@ -19,7 +20,7 @@ class SubscriptionManager {
   getClientsIds() {
     let clientsIds = [];
     this.types.forEach((destinationType) => {
-      clientsIds = merge(clientsIds, this.subscribedUsers[destinationType]);
+      clientsIds = mergeUniq(clientsIds, this.subscribedUsers[destinationType]);
     });
     return clientsIds;
   }
@@ -79,29 +80,6 @@ class SubscriptionManager {
   getSegmentHistory(fromId, toId = '1.11.0') {
     return Apis.instance().history_api().exec('get_account_history_operations', [this.serviceUserId, 0, fromId, toId, 100]);
   }
-}
-
-function decryptMemo(privateKey, memo) {
-  return Aes.decrypt_with_checksum(
-    privateKey,
-    memo.from,
-    memo.nonce,
-    memo.message
-  ).toString('utf-8');
-}
-
-function merge(...args) {
-  const hash = {};
-  const arr = [];
-  for (let i = 0; i < args.length; i += 1) {
-    for (let j = 0; j < args[i].length; j += 1) {
-      if (hash[args[i][j]] !== true) {
-        arr[arr.length] = args[i][j];
-        hash[args[i][j]] = true;
-      }
-    }
-  }
-  return arr;
 }
 
 module.exports = SubscriptionManager;
