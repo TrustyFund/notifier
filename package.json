@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node src/index.js",
     "lint": "./node_modules/eslint/bin/eslint.js src",
-    "test": "node src/test2.js"
+    "test": "node test2.js"
   },
   "author": "",
   "license": "ISC",

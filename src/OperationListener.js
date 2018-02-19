@@ -14,6 +14,18 @@ class OperationListener {
     });
   }
 
+  addUser(id) {
+    if (this.usersIds.indexOf(id) === -1) {
+      this.usersIds.push(id);
+    }
+  }
+
+  removeUser(id) {
+    if (this.usersIds.indexOf(id) > -1) {
+      this.usersIds.splice(this.usersIds.indexOf(id), 1);
+    }
+  }
+
 
   setDefaultAssets(assets) {
     this.fetchedAssets = assets;
