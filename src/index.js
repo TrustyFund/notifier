@@ -16,6 +16,8 @@ Apis.instance('wss://openledger.hk/ws', true).init_promise.then(async () => {
   const operationListener = new OperationListener([serviceUserId, ...clientsIds]);
   operationListener.setEventCallback((notification) => {
     const { userId, message } = notification;
+    console.log('message in index ' + message);
+
     if (userId === serviceUserId) {
       // manage subscriptions here
     } else {
