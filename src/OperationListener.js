@@ -3,6 +3,10 @@ const { getRealCost, formatPrice } = require('./Utils');
 
 const defaultAssets = ['BTS', 'BTC', 'OPEN.BTC'];
 
+
+
+//const tempFill='{"id":"1.11.140672464","op":[4,{"fee":{"amount":0,"asset_id":"1.3.0"},"order_id":"1.7.55133591","account_id":"1.2.512210","pays":{"amount":631520,"asset_id":"1.3.113"},"receives":{"amount":3774330,"asset_id":"1.3.0"},"fill_price":{"base":{"amount":1673200,"asset_id":"1.3.113"},"quote":{"amount":10000000,"asset_id":"1.3.0"}},"is_maker":true}],"result":[0,{}],"block_num":24524192,"trx_in_block":19,"op_in_trx":2,"virtual_op":45428}';
+
 class OperationListener {
   constructor(usersIds) {
     this.usersIds = usersIds;
@@ -39,7 +43,7 @@ class OperationListener {
     });
   }
 
-  checkOperation(operation) {
+  async checkOperation(operation) {
     if (operation.id) {
       if (operation.id.includes('1.11.')) {
         const [operationId, payload] = operation.op;
@@ -53,9 +57,11 @@ class OperationListener {
 
         if (opType !== undefined) {
           if ((filter[opType] !== undefined) && (this.usersIds.indexOf(payload[filter[opType].user_field]) > -1)) {
-            const message = filter[opType].callback(operation);
+            const message = await filter[opType].callback(operation);
             if (message) {
-              this.eventCallback(payload[filter[opType].user_field], message);
+              console.log('operation user: ' + payload[filter[opType].user_field]);
+              console.log('return message: ' + JSON.stringify(message));
+              this.eventCallback({ userId: payload[filter[opType].user_field], message });
             }
           }
         }
@@ -63,7 +69,7 @@ class OperationListener {
     }
   }
 
-  retreiveTransfer(source) {
+  async retreiveTransfer(source) {
     const operation = source.op[1];
     const transferAsset = this.findAsset(operation.amount.asset_id);
     const value = getRealCost(operation.amount.amount, transferAsset.precision);
@@ -75,7 +81,11 @@ class OperationListener {
     const blockNum = source.block_num;
     const trxInBlock = source.trx_in_block;
 
-    const order = await Apis.instance().db_api().exec('get_objects', [[source.op[1].order_id]]);
+
+    const operation = source.op[1];
+
+    const order = await Apis.instance().db_api().exec('get_objects', [[operation.order_id]]);
+    console.log(order);
     if (order[0] != null) {
       return false;
     }
@@ -83,7 +93,6 @@ class OperationListener {
     const { transactions } = await Apis.instance().db_api().exec('get_block', [blockNum]);
     const myTransaction = transactions[trxInBlock];
 
-    const operation = source.op[1];
     const isBid = myTransaction.operations[0][1].amount_to_sell.asset_id === myTransaction.operations[0][1].fee.asset_id;
 
     const priceBase = (isBid) ? operation.receives : operation.pays;
@@ -100,8 +109,7 @@ class OperationListener {
     const baseAsset = this.findAsset(priceBase.asset_id);
     const quoteAsset = this.findAsset(priceQuote.asset_id);
     const price = formatPrice(priceBase.amount / priceQuote.amount, baseAsset, quoteAsset);
-
-    const message = `${fillOrderSide} ${orderValue.amount} ${orderValue.symbol} at ${price} ${baseAsset.symbol}/${quoteAsset.symbol}`;
+    const message = { subject: 'Close order', body: `${fillOrderSide} ${orderValue.amount} ${orderValue.symbol} at ${price} ${baseAsset.symbol}/${quoteAsset.symbol}` };
     return message;
   }
 
