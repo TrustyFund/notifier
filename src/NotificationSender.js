@@ -30,7 +30,11 @@ class NotificationSender {
         this.sendEmail(message, client);
         break;
 
-      case ('push'):
+      case ('android'):
+        this.sendPush(message, client);
+        break;
+
+      case ('ios'):
         this.sendPush(message, client);
         break;
 
