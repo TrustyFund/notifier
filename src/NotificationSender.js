@@ -44,12 +44,11 @@ class NotificationSender {
       return;
     }
 
-    const emailMessage = this.generateEmailMessage(message);
     const emailOptions = {
       from: 'lobovoiudar@yandex.ru',
-      to: this.getClientEmail(client),
-      subject: emailMessage.subject,
-      body: emailMessage.body,
+      to: client,
+      subject: message.subject,
+      body: message.body,
     };
     this.emailTransporter.sendMail(emailOptions, (error, info) => {
       if (error) {
@@ -60,45 +59,14 @@ class NotificationSender {
     });
   }
 
-  getClientEmail(client) {
-    return 'lobovoiudar@yandex.ru';
-  }
-
-  generateEmailMessage(message) {
-    const emailMessage = {
-      subject: 'huyabject',
-      body: 'huyody',
-    };
-    return emailMessage;
-  }
-
   sendPush(message, client) {
-    const clientToken = this.getClientToken(client);
-    const pushMessage = this.generatePushMessage(message);
-    this.fcmServer.messaging().sendToDevice(clientToken, pushMessage)
+    this.fcmServer.messaging().sendToDevice(client, message)
       .then((response) => {
         console.log('message is sent', response);
       })
       .catch((error) => {
         console.log('Error sending message:', error);
       });
-  }
-
-  getClientToken(client) {
-    return 'cdCIfJbX3wQ:APA91bHNYxBIBFaFrioPAe55oI3iP5iqPUeJYMbEd5ZiKKmubceu6Frx56ZxEtuVvuepQg3xLG1UCVZwsaef75yOuXR3LuoOCuNBCzBYtIYGkPB1THmBZyfXnb5bnX4yZEyZeoUJvr4j';
-  }
-
-  generatePushMessage(message) {
-    const pushMessage = {
-      notification: {
-        title: 'Trusty',
-        body: 'zdraste',
-      },
-      data: {
-        message: 'any data',
-      }
-    };
-    return pushMessage;
   }
 }
 
