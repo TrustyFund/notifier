@@ -7,7 +7,6 @@ class OperationListener {
   constructor(usersIds) {
     this.usersIds = usersIds;
     Apis.instance().db_api().exec('set_subscribe_callback', [this.subsribeCallback.bind(this), true]);
-    // const that = this;
     Apis.instance().db_api().exec('lookup_asset_symbols', [defaultAssets]).then(assetObjects => {
       this.setDefaultAssets(assetObjects);
     });
@@ -27,7 +26,6 @@ class OperationListener {
 
 
   setDefaultAssets(assets) {
-    console.log(assets);
     this.fetchedAssets = assets;
   }
 
@@ -73,6 +71,11 @@ class OperationListener {
   async retreiveFillOrder(source) {
     const blockNum = source.block_num;
     const trxInBlock = source.trx_in_block;
+
+    const order = await Apis.instance().db_api().exec('get_objects', [[source.op[1].order_id]]);
+    if (order[0] != null) {
+      return;
+    }
 
     const { transactions } = await Apis.instance().db_api().exec('get_block', [blockNum]);
     const myTransaction = transactions[trxInBlock];

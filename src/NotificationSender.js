@@ -3,12 +3,12 @@ const nodemailer = require('nodemailer');
 
 class NotificationSender {
   constructor(fcmAuthFile, emailTransporterRequired) {
-    this.upFCMServer(fcmAuthFile); 
+    this.upFCMServer(fcmAuthFile);
     this.createEmailTransporter(emailTransporterRequired);
   }
 
   upFCMServer(fcmAuthFile) {
-    this.fcmServer=fcmAdmin.initializeApp({
+    this.fcmServer = fcmAdmin.initializeApp({
       credential: fcmAdmin.credential.cert(fcmAuthFile),
       databaseURL: 'https://trusty-informator.firebaseio.com',
     });
@@ -40,8 +40,9 @@ class NotificationSender {
   }
 
   sendEmail(message, client) {
-    if (message === undefined)
+    if (message === undefined) {
       return;
+    }
 
     const emailMessage = this.generateEmailMessage(message);
     const emailOptions = {

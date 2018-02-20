@@ -6,7 +6,7 @@ function getRealCost(amount, precision) {
 }
 
 function writeToFile(data) {
-  fs.appendFile('block_log', data + '\n\n', (error) => {
+  fs.appendFile('operations_log', data + '\n\n', (error) => {
     if (error) throw error;
   });
 }
