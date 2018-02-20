@@ -24,7 +24,6 @@ class OperationListener {
     }
   }
 
-
   setDefaultAssets(assets) {
     this.fetchedAssets = assets;
   }
@@ -47,8 +46,8 @@ class OperationListener {
         const opType = dict[operationId];
 
         const filter = {
-          transfer: { user_field: 'to', callback: this.retreiveTransfer.bind(this) },
-          fill_order: { user_field: 'account_id', callback: this.retreiveFillOrder.bind(this) }
+          transfer: { user_field: 'to', callback: this.processTransfer.bind(this) },
+          fill_order: { user_field: 'account_id', callback: this.processFillOrder.bind(this) }
         };
 
         if (opType !== undefined) {
@@ -63,7 +62,7 @@ class OperationListener {
     }
   }
 
-  retreiveTransfer(source) {
+  processTransfer(source) {
     const operation = source.op[1];
     const transferAsset = this.findAsset(operation.amount.asset_id);
     const value = getRealCost(operation.amount.amount, transferAsset.precision);
@@ -71,15 +70,17 @@ class OperationListener {
     return message;
   }
 
-  async retreiveFillOrder(source) {
+  async processFillOrder(source) {
     const blockNum = source.block_num;
     const trxInBlock = source.trx_in_block;
 
+    // If order exists as seperent object, then it was not fullfilled yet
     const order = await Apis.instance().db_api().exec('get_objects', [[source.op[1].order_id]]);
     if (order[0] != null) {
       return false;
     }
 
+    // We need it to identify direction (bought, sold)
     const { transactions } = await Apis.instance().db_api().exec('get_block', [blockNum]);
     const myTransaction = transactions[trxInBlock];
 
