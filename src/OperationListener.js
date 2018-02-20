@@ -53,7 +53,10 @@ class OperationListener {
 
         if (opType !== undefined) {
           if ((filter[opType] !== undefined) && (this.usersIds.indexOf(payload[filter[opType].user_field]) > -1)) {
-            this.eventCallback(payload[filter[opType].user_field], filter[opType].callback(operation));
+            const message = filter[opType].callback(operation);
+            if (message) {
+              this.eventCallback(payload[filter[opType].user_field], message);
+            }
           }
         }
       }
@@ -74,7 +77,7 @@ class OperationListener {
 
     const order = await Apis.instance().db_api().exec('get_objects', [[source.op[1].order_id]]);
     if (order[0] != null) {
-      return;
+      return false;
     }
 
     const { transactions } = await Apis.instance().db_api().exec('get_block', [blockNum]);
