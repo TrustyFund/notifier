@@ -1,7 +1,7 @@
 const { Apis } = require('bitsharesjs-ws');
 const { key } = require('bitsharesjs');
 const { mergeUniq, decryptMemo } = require('./Utils');
-
+const config = require('../config');
 
 class SubscriptionManager {
   constructor(types) {
@@ -56,7 +56,7 @@ class SubscriptionManager {
           } else {
             this.skipClient(destinationType, clientId);
           }
-        } else {
+        } else if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
           this.addClient(destinationType, clientId, destination, recount);
         }
       }
