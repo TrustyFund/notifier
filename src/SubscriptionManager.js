@@ -7,12 +7,12 @@ class SubscriptionManager {
   constructor(types) {
     this.types = types;
     this.subscribedUsers = {};
-    this.unsubscribedUsers = {};
+    this.skipUsers = {};
     this.destinations = {};
 
     types.forEach((item) => {
       this.subscribedUsers[item] = [];
-      this.unsubscribedUsers[item] = [];
+      this.skipUsers[item] = [];
       this.destinations[item] = {};
     });
   }
@@ -23,6 +23,45 @@ class SubscriptionManager {
       clientsIds = mergeUniq(clientsIds, this.subscribedUsers[destinationType]);
     });
     return clientsIds;
+  }
+
+  removeClient(destinationType, clientId) {
+    this.subscribedUsers[destinationType].splice(this.subscribedUsers[destinationType].indexOf(clientId), 1);
+    delete this.destinations[destinationType][clientId];
+  }
+
+  addClient(destinationType, clientId, destination, recount) {
+    if (!recount && this.skipUsers[destinationType].includes(clientId)) {
+      return;
+    }
+    this.subscribedUsers[destinationType].push(clientId);
+    this.destinations[destinationType][clientId] = destination;
+  }
+
+  skipClient(destinationType, clientId) {
+    this.skipUsers[destinationType].push(clientId);
+  }
+
+  processSubscription(transfer, recount) {
+    if (transfer.memo) {
+      const message = decryptMemo(this.ownerKey, transfer.memo);
+      const clientId = transfer.from;
+      const [destinationType, ...data] = message.split(':');
+      if (destinationType && data && this.types.includes(destinationType)) {
+        // Need to join rightside because android token has same devider
+        const destination = data.join('');
+        if (destination === 'stop') {
+          if (recount) {
+            this.removeClient(destinationType, clientId);
+          } else {
+            this.skipClient(destinationType, clientId);
+          }
+        } else {
+          this.addClient(destinationType, clientId, destination, recount);
+        }
+      }
+    }
+    return this.destinations;
   }
 
   async setServiceUser(brainkey) {
@@ -38,22 +77,7 @@ class SubscriptionManager {
   async getActiveSubscriptions() {
     const allHistory = await this.getAllHistory();
     allHistory.forEach((item) => {
-      if (item.op[1].memo) {
-        const message = decryptMemo(this.ownerKey, item.op[1].memo);
-        const clientId = item.op[1].from;
-        const [action, ...data] = message.split(':');
-        if (action && data) {
-          // Need to join rightside because android token has same devider
-          const fullData = data.join('');
-          if (action === 'stop' && this.types.includes(fullData)) {
-            this.unsubscribedUsers[fullData].push(clientId);
-          }
-          if (this.types.includes(action) && !this.unsubscribedUsers[action].includes(clientId) && !this.subscribedUsers[action].includes(clientId)) {
-            this.subscribedUsers[action].push(clientId);
-            this.destinations[action][clientId] = fullData;
-          }
-        }
-      }
+      this.processSubscription(item.op[1], false);
     });
     return this.destinations;
   }

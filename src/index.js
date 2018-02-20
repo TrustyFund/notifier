@@ -10,15 +10,25 @@ const notificationSender = new NotificationSender('./trusty-informator-firebase-
 Apis.instance('wss://openledger.hk/ws', true).init_promise.then(async () => {
   const subscriptionManager = new SubscriptionManager(config.deliveryMethods);
   const serviceUserId = await subscriptionManager.setServiceUser(config.serviceUserBrainkey);
-  const activeSubscriptions = await subscriptionManager.getActiveSubscriptions();
+  let activeSubscriptions = await subscriptionManager.getActiveSubscriptions();
   const clientsIds = subscriptionManager.getClientsIds();
   console.log('Subscriptions: ', activeSubscriptions);
   const operationListener = new OperationListener([serviceUserId, ...clientsIds]);
   operationListener.setEventCallback((notification) => {
-    const { userId, message } = notification;
+    const {
+      userId,
+      message,
+      type,
+      payload
+    } = notification;
 
     if (userId === serviceUserId) {
-      // manage subscriptions here
+      if (type === 'transfer') {
+        activeSubscriptions = subscriptionManager.processSubscription(payload, true);
+        const newClientsIds = subscriptionManager.getClientsIds();
+        operationListener.updateSubscribedUsers([serviceUserId, ...newClientsIds]);
+        console.log('\n\nUpdate subscriptions', activeSubscriptions);
+      }
     } else {
       config.deliveryMethods.forEach((method) => {
         if (activeSubscriptions[method][userId] !== undefined) {

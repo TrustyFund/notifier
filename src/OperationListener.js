@@ -1,5 +1,5 @@
 const { Apis } = require('bitsharesjs-ws');
-const { getRealCost, formatPrice, writeToFile } = require('./Utils');
+const { getRealCost, formatPrice } = require('./Utils');
 
 const defaultAssets = ['BTS', 'BTC', 'OPEN.BTC'];
 
@@ -13,16 +13,8 @@ class OperationListener {
     });
   }
 
-  addUser(id) {
-    if (this.usersIds.indexOf(id) === -1) {
-      this.usersIds.push(id);
-    }
-  }
-
-  removeUser(id) {
-    if (this.usersIds.indexOf(id) > -1) {
-      this.usersIds.splice(this.usersIds.indexOf(id), 1);
-    }
+  updateSubscribedUsers(newUsersIds) {
+    this.usersIds = newUsersIds;
   }
 
   setDefaultAssets(assets) {
@@ -55,9 +47,12 @@ class OperationListener {
           if ((filter[opType] !== undefined) && (this.usersIds.indexOf(payload[filter[opType].user_field]) > -1)) {
             const message = await filter[opType].callback(operation);
             if (message) {
-              console.log('operation user: ' + payload[filter[opType].user_field]);
-              console.log('return message: ' + JSON.stringify(message));
-              this.eventCallback({ userId: payload[filter[opType].user_field], message });
+              this.eventCallback({
+                userId: payload[filter[opType].user_field],
+                type: opType,
+                message,
+                payload
+              });
             }
           }
         }
