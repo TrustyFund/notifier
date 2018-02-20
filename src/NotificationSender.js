@@ -52,7 +52,7 @@ class NotificationSender {
       from: 'lobovoiudar@yandex.ru',
       to: client,
       subject: message.subject,
-      body: message.body,
+      text: message.body,
     };
     this.emailTransporter.sendMail(emailOptions, (error, info) => {
       if (error) {
