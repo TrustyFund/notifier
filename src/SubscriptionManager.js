@@ -46,18 +46,37 @@ class SubscriptionManager {
     if (transfer.memo) {
       const message = decryptMemo(this.ownerKey, transfer.memo);
       const clientId = transfer.from;
-      const [destinationType, ...data] = message.split(':');
-      if (destinationType && data && this.types.includes(destinationType)) {
-        // Need to join rightside because android token has same devider
-        const destination = data.join('');
-        if (destination === 'stop') {
-          if (recount) {
-            this.removeClient(destinationType, clientId);
-          } else {
-            this.skipClient(destinationType, clientId);
+
+      if (this.types.length === 1) {
+        const destinationType = this.types[0];
+        const deliveryIdentification = config.deliveryIdentification[0];
+        if (message.indexOf(deliveryIdentification) > -1) {
+          if (message.indexOf('stop') > -1) {
+            const [stop, destination] = message.split(' ');
+            if (recount) {
+              this.removeClient(destinationType, clientId);
+            } else {
+              this.skipClient(destinationType, clientId);
+            }
+          } else if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
+            const destination = message.replace('email:', '');
+            this.addClient(destinationType, clientId, destination, recount);
           }
-        } else if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
-          this.addClient(destinationType, clientId, destination, recount);
+        }
+      } else {
+        const [destinationType, ...data] = message.split(':');
+        if (destinationType && data && this.types.includes(destinationType)) {
+          // Need to join rightside because android token has same devider
+          const destination = data.join('');
+          if (destination === 'stop') {
+            if (recount) {
+              this.removeClient(destinationType, clientId);
+            } else {
+              this.skipClient(destinationType, clientId);
+            }
+          } else if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
+            this.addClient(destinationType, clientId, destination, recount);
+          }
         }
       }
     }
