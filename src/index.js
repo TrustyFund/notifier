@@ -1,41 +1,35 @@
 const { Apis } = require('bitsharesjs-ws');
-const NotificationSender = require('./NotificationSender');
-const OperationListener = require('./OperationListener');
-const SubscriptionManager = require('./SubscriptionManager');
 const config = require('../config');
+const cluster = require('cluster');
+const NodesManager = require('./NodesManager');
+const processWork = require('./worker');
 
-
-const notificationSender = new NotificationSender('./trusty-informator-firebase-adminsdk-808sd-9702018d1f.json', config.emailTransport);
-
-Apis.instance('wss://openledger.hk/ws', true).init_promise.then(async () => {
-  const subscriptionManager = new SubscriptionManager(config.deliveryMethods);
-  const serviceUserId = await subscriptionManager.setServiceUser(config.serviceUserBrainkey);
-  let activeSubscriptions = await subscriptionManager.getActiveSubscriptions();
-  const clientsIds = subscriptionManager.getClientsIds();
-  console.log('Subscriptions: ', activeSubscriptions);
-  const operationListener = new OperationListener([serviceUserId, ...clientsIds]);
-  operationListener.setEventCallback((notification) => {
-    const {
-      userId,
-      message,
-      type,
-      payload
-    } = notification;
-
-    if (userId === serviceUserId) {
-      if (type === 'transfer') {
-        activeSubscriptions = subscriptionManager.processSubscription(payload, true);
-        const newClientsIds = subscriptionManager.getClientsIds();
-        operationListener.updateSubscribedUsers([serviceUserId, ...newClientsIds]);
-        console.log('\n\nUpdate subscriptions', activeSubscriptions);
-      }
-    } else {
-      config.deliveryMethods.forEach((method) => {
-        if (activeSubscriptions[method][userId] !== undefined) {
-          notificationSender.sendMessage(message, activeSubscriptions[method][userId], method);
-        }
-      });
-    }
-  });
+const nodesManager = new NodesManager({
+  nodes: config.bitsharesNodes.list,
+  defaultNode: config.bitsharesNodes.defaultNode
 });
 
+const updateConnectionStatus = (status) => {
+  if (status === 'error' || status === 'closed') {
+    process.exit(1);
+  }
+};
+let retryCount = 0;
+
+if (cluster.isMaster) {
+  cluster.fork();
+  cluster.on('exit', (worker) => {
+    console.log('Worker ' + worker.id + ' died..');
+    retryCount += 1;
+    cluster.fork();
+  });
+} else {
+  const url = retryCount ? nodesManager.getAnotherNodeUrl() : nodesManager.getInitialNodeUrl();
+  Apis.setRpcConnectionStatusCallback(updateConnectionStatus);
+  Apis.instance(url, true).init_promise.then(() => {
+    nodesManager.testNodesPings();
+    processWork();
+  }).catch(() => {
+    updateConnectionStatus('error');
+  });
+}
