@@ -5,6 +5,7 @@ class NotificationSender {
   constructor(fcmAuthFile, emailTransporterRequired) {
     this.upFCMServer(fcmAuthFile);
     this.createEmailTransporter(emailTransporterRequired);
+    this.from = emailTransporterRequired.user;
   }
 
   upFCMServer(fcmAuthFile) {
@@ -49,7 +50,7 @@ class NotificationSender {
     }
 
     const emailOptions = {
-      from: 'lobovoiudar@yandex.ru',
+      from: this.from,
       to: client,
       subject: message.subject,
       text: message.body,
