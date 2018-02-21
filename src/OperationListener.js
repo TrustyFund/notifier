@@ -94,7 +94,7 @@ class OperationListener {
     const fillOrderSide = isBid ? 'buy' : 'sell';
 
     const orderAsset = await this.findAsset(amount.asset_id);
-    const orderValue = { amount: getRealCost(receivedAmount, orderAsset.precision), symbol: this.findAsset(amount.asset_id).symbol };
+    const orderValue = { amount: getRealCost(receivedAmount, orderAsset.precision), symbol: await this.findAsset(amount.asset_id).symbol };
 
     const baseAsset = await this.findAsset(priceBase.asset_id);
     const quoteAsset = await this.findAsset(priceQuote.asset_id);
