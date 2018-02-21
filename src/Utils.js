@@ -1,14 +1,7 @@
-const fs = require('fs');
 const { Aes } = require('bitsharesjs');
 
 function getRealCost(amount, precision) {
   return Math.abs(amount / (10 ** precision)).toFixed(9);
-}
-
-function writeToFile(data) {
-  fs.appendFile('orders_fill_log', data + '\n\n', (error) => {
-    if (error) throw error;
-  });
 }
 
 function formatPrice(price, base, quote) {
@@ -42,7 +35,6 @@ function mergeUniq(...args) {
 
 module.exports = {
   getRealCost,
-  writeToFile,
   formatPrice,
   mergeUniq,
   decryptMemo
