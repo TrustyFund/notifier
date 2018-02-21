@@ -6,11 +6,11 @@ This service listens bitshares blockchain for subscriptions & events and sends s
 - Order filled
 
 To subscribe you need to send 50 BTS to email-notifier user with memo:
-- To subscribe
+- To subscribe: 
 ``
 your@email.org 
 ``
-- To unsubscribe
+- To unsubscribe: 
 ``
 stop your@email.org
 ``
