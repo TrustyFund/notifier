@@ -3,16 +3,16 @@
 
 This service listens bitshares blockchain for subscriptions & events and sends subscribers info about:
 - Transfer received
-- Order fullfilled
+- Order filled
 
 To subscribe you need to send 50 BTS to email-notifier user with memo:
 - To subscribe
 ``
-email:your@email.ru 
+your@email.org 
 ``
 - To unsubscribe
 ``
-email:stop
+stop your@email.org
 ``
 
 ## To run your own node:
