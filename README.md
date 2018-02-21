@@ -15,7 +15,7 @@ your@email.org
 stop your@email.org
 ``
 
-## To run your own node:
+## Running the service on your own node 
 ``
 cp config.sample.js config.js
 ``
