@@ -4,6 +4,7 @@ module.exports = {
   defaultAssets: ['BTS', 'OPEN.EOS', 'USD', 'OPEN.OMG', 'CNY',
     'OPEN.LTC', 'TRFND', 'OPEN.BTC'],
   deliveryMethods: ['email'],
+  deliveryIdentification: ['@'],
   // It is 100 BTS
   assetToSubscribe: '1.3.0',
   amountToSubscribe: 0,
