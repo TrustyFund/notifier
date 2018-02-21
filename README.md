@@ -5,7 +5,7 @@ This service listens bitshares blockchain for subscriptions & events and sends s
 - Transfer received
 - Order fullfilled
 
-To subscribe you need to send 100 BTS to email-notifier user with memo:
+To subscribe you need to send 50 BTS to email-notifier user with memo:
 - To subscribe
 ``
 email:your@email.ru 
