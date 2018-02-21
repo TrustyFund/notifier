@@ -1,7 +1,7 @@
 const { Aes } = require('bitsharesjs');
 
 function getRealCost(amount, precision) {
-  return Math.abs(amount / (10 ** precision)).toFixed(9);
+  return Math.abs(amount / (10 ** precision));
 }
 
 function formatPrice(price, base, quote) {

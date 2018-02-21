@@ -64,7 +64,7 @@ class OperationListener {
     const operation = source.op[1];
     const transferAsset = await this.findAsset(operation.amount.asset_id);
     const value = getRealCost(operation.amount.amount, transferAsset.precision);
-    const message = { subject: 'Bitshares transfer', body: `You just received ${transferAsset.symbol} ${value}` };
+    const message = { subject: 'Bitshares transfer', body: `You just received ${value} ${transferAsset.symbol}` };
     return message;
   }
 
