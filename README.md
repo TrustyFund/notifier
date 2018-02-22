@@ -1,11 +1,11 @@
-# Bitshares email notifier
-## Using our service
+# BitShares email notifications service
+## Using the service
 
-This service listens bitshares blockchain for subscriptions & events and sends subscribers info about:
-- Transfer received
-- Order filled
+This service monitors the Bitshares blockchain and notifies subscribers regarding the following activity types:
+- Transfer
+- Fill order
 
-To subscribe you need to send 50 BTS to email-notifier user with memo:
+To get a lifetime subscription, please send 50 BTS to account name "EMAIL-NOTIFIER" with tx memo:
 - To subscribe: 
 ``
 your@email.org 
@@ -15,7 +15,7 @@ your@email.org
 stop your@email.org
 ``
 
-## To run your own node:
+## Running the service on your own node 
 ``
 cp config.sample.js config.js
 ``
