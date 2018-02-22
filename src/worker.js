@@ -10,6 +10,7 @@ async function processWork() {
   let activeSubscriptions = await subscriptionManager.getActiveSubscriptions();
   const clientsIds = subscriptionManager.getClientsIds();
   console.log('Subscriptions: ', activeSubscriptions);
+  console.log('Users', clientsIds);
   const operationListener = new OperationListener([serviceUserId, ...clientsIds]);
 
   operationListener.setEventCallback((notification) => {
@@ -29,8 +30,11 @@ async function processWork() {
       }
     } else {
       config.deliveryMethods.forEach((method) => {
-        if (activeSubscriptions[method][userId] !== undefined) {
-          notificationSender.sendMessage(message, activeSubscriptions[method][userId], method);
+        if (activeSubscriptions[userId][method] !== undefined) {
+          console.log('Sending message ', message, ' for ', activeSubscriptions[userId][method]);
+          activeSubscriptions[userId][method].forEach((destination) => {
+            notificationSender.sendMessage(message, destination, method);
+          });
         }
       });
     }

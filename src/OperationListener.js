@@ -104,17 +104,17 @@ class OperationListener {
   }
 
   async findAsset(assetId) {
-    let findAsset;
+    let foundAsset;
     this.fetchedAssets.forEach((asset) => {
       if (asset.id === assetId) {
-        findAsset = asset;
+        foundAsset = asset;
       }
     });
 
-    if (findAsset === undefined) {
-      [findAsset] = await Apis.instance().db_api().exec('lookup_asset_symbols', [[assetId]]);
+    if (foundAsset === undefined) {
+      [foundAsset] = await Apis.instance().db_api().exec('lookup_asset_symbols', [[assetId]]);
     }
-    return findAsset !== undefined ? findAsset : assetId;
+    return foundAsset;
   }
 }
 

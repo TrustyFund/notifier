@@ -1,45 +1,58 @@
 const { Apis } = require('bitsharesjs-ws');
 const { key } = require('bitsharesjs');
-const { mergeUniq, decryptMemo } = require('./Utils');
+const { decryptMemo } = require('./Utils');
 const config = require('../config');
 
 class SubscriptionManager {
   constructor(types) {
     this.types = types;
     this.subscribedUsers = {};
-    this.skipUsers = {};
-    this.destinations = {};
-
-    types.forEach((item) => {
-      this.subscribedUsers[item] = [];
-      this.skipUsers[item] = [];
-      this.destinations[item] = {};
-    });
+    this.skippedUsers = {};
   }
 
   getClientsIds() {
-    let clientsIds = [];
-    this.types.forEach((destinationType) => {
-      clientsIds = mergeUniq(clientsIds, this.subscribedUsers[destinationType]);
+    const returnIds = [];
+    Object.keys(this.subscribedUsers).forEach((userId) => {
+      this.types.forEach((destinationType) => {
+        if (this.subscribedUsers[userId][destinationType].length) {
+          returnIds.push(userId);
+        }
+      });
     });
-    return clientsIds;
+
+    return returnIds;
   }
 
-  removeClient(destinationType, clientId) {
-    this.subscribedUsers[destinationType].splice(this.subscribedUsers[destinationType].indexOf(clientId), 1);
-    delete this.destinations[destinationType][clientId];
+  removeClient(clientId, destinationType, destination) {
+    if (this.subscribedUsers[clientId][destinationType].includes(destination)) {
+      this.subscribedUsers[clientId][destinationType].splice(this.subscribedUsers[clientId][destinationType].indexOf(destination), 1);
+    }
   }
 
-  addClient(destinationType, clientId, destination, recount) {
-    if (!recount && this.skipUsers[destinationType].includes(clientId)) {
+  setUserArrays(clientId) {
+    this.subscribedUsers[clientId] = {};
+    this.skippedUsers[clientId] = {};
+    this.types.forEach((destinationType) => {
+      this.subscribedUsers[clientId][destinationType] = [];
+      this.skippedUsers[clientId][destinationType] = [];
+    });
+  }
+
+  addClient(clientId, destinationType, destination, recount) {
+    if (this.subscribedUsers[clientId] === undefined) {
+      this.setUserArrays(clientId);
+    }
+    if (!recount && this.skippedUsers[clientId][destinationType].includes(destination)) {
       return;
     }
-    this.subscribedUsers[destinationType].push(clientId);
-    this.destinations[destinationType][clientId] = destination;
+    this.subscribedUsers[clientId][destinationType].push(destination);
   }
 
-  skipClient(destinationType, clientId) {
-    this.skipUsers[destinationType].push(clientId);
+  skipClient(clientId, destinationType, destination) {
+    if (this.subscribedUsers[clientId] === undefined) {
+      this.setUserArrays(clientId);
+    }
+    this.skippedUsers[clientId][destinationType].push(destination);
   }
 
   processSubscription(transfer, recount) {
@@ -47,40 +60,28 @@ class SubscriptionManager {
       const message = decryptMemo(this.ownerKey, transfer.memo);
       const clientId = transfer.from;
 
-      if (this.types.length === 1) {
-        const destinationType = this.types[0];
-        const deliveryIdentification = config.deliveryIdentification[0];
-        if (message.indexOf(deliveryIdentification) > -1) {
-          if (message.indexOf('stop') > -1) {
-            const [stop, destination] = message.split(' ');
-            if (recount) {
-              this.removeClient(destinationType, clientId);
-            } else {
-              this.skipClient(destinationType, clientId);
+      this.types.forEach((destinationType, index) => {
+        const messageParts = message.split(config.unsubscribeDevider);
+        if (messageParts.length === 1) {
+          const destination = messageParts[0];
+          if (destination.includes(config.deliveryIdentification[index])) {
+            if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
+              this.addClient(clientId, destinationType, destination, recount);
             }
-          } else if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
-            const destination = message.replace('email:', '');
-            this.addClient(destinationType, clientId, destination, recount);
+          }
+        } else if (messageParts.length === 2) {
+          const [stopMessage, destination] = messageParts;
+          if (stopMessage === 'stop') {
+            if (recount) {
+              this.removeClient(clientId, destinationType, destination);
+            } else {
+              this.skipClient(clientId, destinationType, destination);
+            }
           }
         }
-      } else {
-        const [destinationType, ...data] = message.split(':');
-        if (destinationType && data && this.types.includes(destinationType)) {
-          // Need to join rightside because android token has same devider
-          const destination = data.join('');
-          if (destination === 'stop') {
-            if (recount) {
-              this.removeClient(destinationType, clientId);
-            } else {
-              this.skipClient(destinationType, clientId);
-            }
-          } else if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
-            this.addClient(destinationType, clientId, destination, recount);
-          }
-        }
-      }
+      });
     }
-    return this.destinations;
+    return this.subscribedUsers;
   }
 
   async setServiceUser(brainkey) {
@@ -98,7 +99,7 @@ class SubscriptionManager {
     allHistory.forEach((item) => {
       this.processSubscription(item.op[1], false);
     });
-    return this.destinations;
+    return this.subscribedUsers;
   }
 
   async getAllHistory() {
@@ -111,10 +112,10 @@ class SubscriptionManager {
     // eslint-disable-next-line no-await-in-loop
     for (;;) {
       const history = await this.getSegmentHistory(fromId);
-      allHistory.push(...history);
       if ((allHistory.length > 0 && history[0].id === allHistory[allHistory.length - 1].id) || !history.length) {
         break;
       }
+      allHistory.push(...history);
       fromId = allHistory[allHistory.length - 1].id;
     }
     return allHistory;

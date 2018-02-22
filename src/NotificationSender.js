@@ -25,18 +25,18 @@ class NotificationSender {
     });
   }
 
-  sendMessage(message, client, notificationType) {
+  sendMessage(message, destination, notificationType) {
     switch (notificationType) {
       case ('email'):
-        this.sendEmail(message, client);
+        this.sendEmail(message, destination);
         break;
 
       case ('android'):
-        this.sendPush(message, client);
+        this.sendPush(message, destination);
         break;
 
       case ('ios'):
-        this.sendPush(message, client);
+        this.sendPush(message, destination);
         break;
 
       default:
@@ -44,14 +44,14 @@ class NotificationSender {
     }
   }
 
-  sendEmail(message, client) {
+  sendEmail(message, destination) {
     if (message === undefined) {
       return;
     }
 
     const emailOptions = {
       from: this.from,
-      to: client,
+      to: destination,
       subject: message.subject,
       text: message.body,
     };
