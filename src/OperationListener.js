@@ -1,6 +1,7 @@
 const { Apis } = require('bitsharesjs-ws');
 const { getRealCost, formatPrice } = require('./Utils');
 const config = require('../config');
+
 const defaultAssets = ['BTS', 'BTC', 'OPEN.BTC'];
 
 
