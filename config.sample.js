@@ -1,10 +1,11 @@
 module.exports = {
-  emailTransport: { user: 'user', pass: 'pass', service: 'service' },
-  serviceUserBrainkey: 'your service user brainkey',
+  emailTransport: { user: 'email', pass: 'password', service: 'service' },
+  serviceUserBrainkey: 'your service account brainkey',
   defaultAssets: ['BTS', 'OPEN.EOS', 'USD', 'OPEN.OMG', 'CNY',
     'OPEN.LTC', 'TRFND', 'OPEN.BTC'],
   deliveryMethods: ['email'],
   deliveryIdentification: ['@'],
+  unsubscribeDevider: [' '],
   // It is 100 BTS
   assetToSubscribe: '1.3.0',
   amountToSubscribe: 0,
@@ -29,5 +30,15 @@ module.exports = {
     'wss://us.nodes.bitshares.ws',
     'wss://sg.nodes.bitshares.ws',
     'wss://ws.winex.pro'
-  ]
+  ],
+  templates: {
+    transfer: {
+      subject: 'Bitshares transfer',
+      body: (value, symbol) => `You just received ${value} ${symbol}`
+    },
+    fill_order: {
+      subject: 'Fill order',
+      body: (action, amount, symbol, price, baseSymbol, quoteSymbol) => `${action} ${amount} ${symbol} at ${price} ${baseSymbol}/${quoteSymbol}`
+    }
+  }
 };

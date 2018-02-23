@@ -1,6 +1,6 @@
 const { Apis } = require('bitsharesjs-ws');
 const { getRealCost, formatPrice } = require('./Utils');
-
+const config = require('../config');
 const defaultAssets = ['BTS', 'BTC', 'OPEN.BTC'];
 
 
@@ -64,8 +64,7 @@ class OperationListener {
     const operation = source.op[1];
     const transferAsset = await this.findAsset(operation.amount.asset_id);
     const value = getRealCost(operation.amount.amount, transferAsset.precision);
-    const message = { subject: 'Bitshares transfer', body: `You just received ${value} ${transferAsset.symbol}` };
-    return message;
+    return { subject: config.templates.transfer.subject, body: config.templates.transfer.body(value, transferAsset.symbol) };
   }
 
   async processFillOrder(source) {
@@ -94,13 +93,12 @@ class OperationListener {
     const fillOrderSide = isBid ? 'bought' : 'sold';
 
     const orderAsset = await this.findAsset(amount.asset_id);
-    const orderValue = { amount: getRealCost(receivedAmount, orderAsset.precision), symbol: await this.findAsset(amount.asset_id).symbol };
+    const orderValue = { amount: getRealCost(receivedAmount, orderAsset.precision), symbol: orderAsset.symbol };
 
     const baseAsset = await this.findAsset(priceBase.asset_id);
     const quoteAsset = await this.findAsset(priceQuote.asset_id);
     const price = formatPrice(priceBase.amount / priceQuote.amount, baseAsset, quoteAsset);
-    const message = { subject: 'Fill order', body: `${fillOrderSide} ${orderValue.amount} ${orderValue.symbol} at ${price} ${baseAsset.symbol}/${quoteAsset.symbol}` };
-    return message;
+    return { subject: config.templates.fill_order.subject, body: config.templates.fill_order.body(fillOrderSide, orderValue.amount, orderValue.symbol, price, baseAsset.symbol, quoteAsset.symbol) };
   }
 
   async findAsset(assetId) {
