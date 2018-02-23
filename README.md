@@ -5,7 +5,7 @@ This service monitors the Bitshares blockchain and notifies subscribers regardin
 - Transfer
 - Fill order
 
-To get a lifetime subscription, please send 50 BTS to account name "EMAIL-NOTIFIER" with tx memo:
+To get a lifetime subscription, send at least 50 BTS to account name "EMAIL-NOTIFIER" with tx memo:
 - To subscribe: 
 ``
 your@email.org 
