@@ -1,6 +1,8 @@
 module.exports = {
-  emailTransport: { user: 'email', pass: 'password', service: 'service' },
-  serviceUserBrainkey: 'your service account brainkey',
+  emailTransport: {
+    host: 'host', port: 587, secure: false, auth: { user: 'user', pass: 'pass' }
+  },
+  serviceUserBrainkey: 'your system user brainkey',
   defaultAssets: ['BTS', 'OPEN.EOS', 'USD', 'OPEN.OMG', 'CNY',
     'OPEN.LTC', 'TRFND', 'OPEN.BTC'],
   deliveryMethods: ['email'],
