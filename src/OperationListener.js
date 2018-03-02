@@ -85,8 +85,8 @@ class OperationListener {
     // We need it to identify direction (bought, sold)
     const { transactions } = await Apis.instance().db_api().exec('get_block', [blockNum]);
     const myTransaction = transactions[trxInBlock];
-
-    const userId = myTransaction.operations[0][1].seller;
+    
+    const userId = operation.account_id;
     const [user] = await this.getUsers([userId]);
 
     const isBid = myTransaction.operations[0][1].amount_to_sell.asset_id === myTransaction.operations[0][1].fee.asset_id;
