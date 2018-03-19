@@ -4,8 +4,8 @@ const SubscriptionManager = require('./SubscriptionManager');
 const config = require('../config');
 
 async function processWork() {
+  const notificationSender = new NotificationSender('./trusty-informator-firebase-adminsdk-808sd-9702018d1f.json', config.emailTransport, config.telegramBotToken);
   const subscriptionManager = new SubscriptionManager(config.deliveryMethods);
-  const notificationSender = new NotificationSender('./trusty-informator-firebase-adminsdk-808sd-9702018d1f.json', config.emailTransport);
   const serviceUserId = await subscriptionManager.setServiceUser(config.serviceUserBrainkey);
   let activeSubscriptions = await subscriptionManager.getActiveSubscriptions();
   const clientsIds = subscriptionManager.getClientsIds();

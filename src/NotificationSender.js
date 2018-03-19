@@ -1,10 +1,13 @@
 const fcmAdmin = require('firebase-admin');
 const nodemailer = require('nodemailer');
+const TelegramBotLayer = require('./TelegramBotLayer');
+
 
 class NotificationSender {
-  constructor(fcmAuthFile, emailTransporterRequired) {
+  constructor(fcmAuthFile, emailTransporterRequired, telegramBotToken) {
     this.upFCMServer(fcmAuthFile);
     this.createEmailTransporter(emailTransporterRequired);
+    this.upTelegramBot(telegramBotToken);
     this.from = emailTransporterRequired.user;
   }
 
@@ -23,6 +26,11 @@ class NotificationSender {
       },
       service: emailTransporterRequired.service
     });
+  }
+
+  upTelegramBot(telegramBotToken) {
+    this.telegramBotLayer = new TelegramBotLayer(telegramBotToken);
+    this.telegramBotLayer.listen();
   }
 
   sendMessage(message, destination, notificationType) {
