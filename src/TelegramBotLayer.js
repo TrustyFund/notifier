@@ -17,8 +17,9 @@ class TelegramBotLayer {
     });
   }
 
-  sendMessage(chatId, msg) {
-    this.bot.sendMessage(chatId, msg);
+  sendMessage(chatId, msg, parseMode) {
+    console.log('send telegram message', chatId, msg);
+    this.bot.sendMessage(chatId, msg, { parse_mode: parseMode });
   }
 }
 

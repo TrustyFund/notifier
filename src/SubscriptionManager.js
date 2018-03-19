@@ -64,9 +64,14 @@ class SubscriptionManager {
         const messageParts = message.split(config.unsubscribeDevider);
         if (messageParts.length === 1) {
           const destination = messageParts[0];
-          if (destination.includes(config.deliveryIdentification[index])) {
-            if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
+          if (transfer.amount.asset_id === config.assetToSubscribe && (transfer.amount.amount >= config.amountToSubscribe)) {
+            if (destination.includes(config.deliveryIdentification[index])) {
               this.addClient(clientId, destinationType, destination, recount);
+            }
+            if (destinationType === 'telegram') {
+              if (!Number.isNaN(parseInt(message, 10))) {
+                this.addClient(clientId, destinationType, destination, recount);
+              }
             }
           }
         } else if (messageParts.length === 2) {

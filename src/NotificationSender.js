@@ -47,6 +47,10 @@ class NotificationSender {
         this.sendPush(message, destination);
         break;
 
+      case ('telegram'):
+        this.sendTelegramMessage(message, destination);
+        break;
+
       default:
         break;
     }
@@ -80,6 +84,12 @@ class NotificationSender {
       .catch((error) => {
         console.log('Error sending message:', error);
       });
+  }
+
+  sendTelegramMessage(message, destination) {
+    const telegramMessage = `<b>${message.subject}</b>\n${message.body}`;
+    const parseMod = 'HTML';
+    this.telegramBotLayer.sendMessage(destination, telegramMessage, parseMod);
   }
 }
 
