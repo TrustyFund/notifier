@@ -4,6 +4,7 @@
 This service monitors BitShares and notifies subscribers by Email or Telegram regarding the following activity types:
 - Transfer
 - Fill order
+- Decrease of collateral ratio below 2.0
 
 ## For Email-notifications
 Send 50 BTS to account name "BITSHARES-NOTIFIER" with your email in the transaction memo.
