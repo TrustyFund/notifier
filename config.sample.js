@@ -36,7 +36,7 @@ module.exports = {
   templates: {
     transfer: {
       subject: 'Bitshares transfer',
-      body: (value, symbol) => `You just received ${value} ${symbol}`
+      body: (value, symbol, from) => `You just received ${value} ${symbol} from ${from}`
     },
     fill_order: {
       subject: 'Fill order',

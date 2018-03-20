@@ -64,8 +64,9 @@ class OperationListener {
   async processTransfer(source) {
     const operation = source.op[1];
     const transferAsset = await this.findAsset(operation.amount.asset_id);
+    const userFromName = await Apis.instance().db_api().exec('get_accounts', [[operation.from]]);
     const value = getRealCost(operation.amount.amount, transferAsset.precision);
-    return { subject: config.templates.transfer.subject, body: config.templates.transfer.body(value, transferAsset.symbol) };
+    return { subject: config.templates.transfer.subject, body: config.templates.transfer.body(value, transferAsset.symbol, userFromName) };
   }
 
   async processFillOrder(source) {
