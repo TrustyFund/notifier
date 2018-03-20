@@ -12,7 +12,7 @@ class TelegramBotLayer {
       console.log(msg);
     });
     this.bot.onText(/\/start/, (msg) => {
-      const message = `To get a lifetime subscription send 50 BTS to account name "EMAIL-NOTIFIER" with tx memo:<b>${msg.chat.id}</b>`;
+      const message = `Send 50 BTS from your BitShares account to account name "BITSHARES-NOTIFIER" with code <b>${msg.chat.id}</b> in the transaction memo.`;
       this.bot.sendMessage(msg.chat.id, message, { parse_mode: 'HTML' });
     });
   }
