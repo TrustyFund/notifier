@@ -1,19 +1,16 @@
-# BitShares email notifications service
+# BitShares notifications service
 ## Using the service
 
-This service monitors the Bitshares blockchain and notifies subscribers regarding the following activity types:
+This service monitors BitShares and notifies subscribers by Email or Telegram regarding the following activity types:
 - Transfer
 - Fill order
 
-To get a lifetime subscription, send at least 50 BTS to account name "EMAIL-NOTIFIER" with tx memo:
-- To subscribe: 
-``
-your@email.org 
-``
-- To unsubscribe: 
-``
-stop your@email.org
-``
+## For Email-notifications
+Send 50 BTS to account name "BITSHARES-NOTIFIER" with your email in the transaction memo.
+
+## For Telegram-notifications
+Open Telegram app, launch bot @trustywalletapp and follow instructions.
+
 
 ## Running the service on your own node 
 ``
