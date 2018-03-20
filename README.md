@@ -9,7 +9,7 @@ This service monitors BitShares and notifies subscribers by Email or Telegram re
 Send 50 BTS to account name "BITSHARES-NOTIFIER" with your email in the transaction memo.
 
 ## For Telegram-notifications
-Open Telegram app, launch bot @trustywalletapp and follow instructions.
+Open Telegram app, launch bot @trustywalletbot and follow instructions.
 
 
 ## Running the service on your own node 
