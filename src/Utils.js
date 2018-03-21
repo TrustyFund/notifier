@@ -10,24 +10,13 @@ function formatPrice(price, base, quote) {
   return Math.abs(realPrice).toFixed(7);
 }
 
-function decryptMemo(ownerKey, activeKey, memo) {
-  try {
-    const message = Aes.decrypt_with_checksum(
-      ownerKey,
-      memo.from,
-      memo.nonce,
-      memo.message
-    ).toString('utf-8');
-    return message;
-  } catch (ex) {
-    const message = Aes.decrypt_with_checksum(
-      activeKey,
-      memo.from,
-      memo.nonce,
-      memo.message
-    ).toString('utf-8');
-    return message;
-  }
+function decryptMemo(privKey, memo) {
+  return Aes.decrypt_with_checksum(
+    privKey,
+    memo.from,
+    memo.nonce,
+    memo.message
+  ).toString('utf-8');
 }
 
 function mergeUniq(...args) {
