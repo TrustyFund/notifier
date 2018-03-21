@@ -1,7 +1,9 @@
 # BitShares notifications service
 ## Using the service
 
-This service monitors BitShares and notifies subscribers by Email or Telegram regarding the following activity types:
+This service monitors your BitShares accoount and notifies you by Email or Telegram regarding the following activity types:
+- Despoit
+- Withdrawal
 - Transfer
 - Fill order
 - Decrease of collateral ratio below 2.0
@@ -10,7 +12,7 @@ This service monitors BitShares and notifies subscribers by Email or Telegram re
 Send 50 BTS from your BitShares account to account name "BITSHARES-NOTIFIER" with your email in the transaction memo.
 
 ## For Telegram-notifications
-Open Telegram app, launch bot @trustywalletbot and follow instructions.
+Open Telegram app, launch bot @trustyfundbot and follow instructions.
 
 
 ## Running the service on your own node 
