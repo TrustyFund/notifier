@@ -57,7 +57,8 @@ class SubscriptionManager {
 
   processSubscription(transfer, recount) {
     if (transfer.memo) {
-      const message = decryptMemo(this.ownerKey, transfer.memo);
+      const message = decryptMemo(this.ownerKey, this.activeKey, transfer.memo);
+      console.log('message', message);
       const clientId = transfer.from;
 
       this.types.forEach((destinationType, index) => {
@@ -94,6 +95,7 @@ class SubscriptionManager {
     const ownerKey = key.get_brainPrivateKey(normalizedBrainkey, 1);
     const ownerPubkey = ownerKey.toPublicKey().toPublicKeyString();
     const [[userId]] = await Apis.instance().db_api().exec('get_key_references', [[ownerPubkey]]);
+    this.activeKey = key.get_brainPrivateKey(normalizedBrainkey, 0);
     this.serviceUserId = userId;
     this.ownerKey = ownerKey;
     return userId;
