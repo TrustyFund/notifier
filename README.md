@@ -2,10 +2,12 @@
 ## Using the service
 
 This service monitors your BitShares accoount and notifies you by Email or Telegram regarding the following activity types:
-- Despoit
-- Withdrawal
 - Transfer
 - Fill order
+
+To do's
+- Deposit
+- Withdrawal
 - Decrease of collateral ratio below 2.0
 
 ## For Email-notifications
