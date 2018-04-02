@@ -86,7 +86,6 @@ class SubscriptionManager {
         }
       });
     }
-    
     return this.subscribedUsers;
   }
 
@@ -113,7 +112,7 @@ class SubscriptionManager {
   }
 
   async getActiveSubscriptions() {
-     config.premiumUsers.forEach(user => {
+    config.premiumUsers.forEach(user => {
       this.addClient(user.clientId, user.destinationType, user.destination, false);
     });
 
@@ -121,7 +120,6 @@ class SubscriptionManager {
     allHistory.forEach((item) => {
       this.processSubscription(item.op[1], false);
     });
-   
     return this.subscribedUsers;
   }
 
