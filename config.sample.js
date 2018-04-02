@@ -44,5 +44,11 @@ module.exports = {
     }
   },
   telegramBotToken: '',
-  premiumUsers: []
+  premiumUsers: [
+    {
+      clientId: '',
+      destinationType: '',
+      destination: ''
+    },
+  ]
 };
