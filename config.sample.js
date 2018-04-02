@@ -42,5 +42,7 @@ module.exports = {
       subject: 'Fill order',
       body: (action, amount, symbol, price, baseSymbol, quoteSymbol) => `${action} ${amount} ${symbol} at ${price} ${baseSymbol}/${quoteSymbol}`
     }
-  }
+  },
+  telegramBotToken: '',
+  premiumUsers: []
 };
