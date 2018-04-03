@@ -8,9 +8,6 @@ class TelegramBotLayer {
   }
 
   listen() {
-    this.bot.on('message', (msg) => {
-      console.log(msg);
-    });
     this.bot.onText(/\/start/, (msg) => {
       const message = `Send 50 BTS from your BitShares account to account name "BITSHARES-NOTIFIER" with code <b>${msg.chat.id}</b> in the transaction memo.`;
       this.bot.sendMessage(msg.chat.id, message, { parse_mode: 'HTML' });
