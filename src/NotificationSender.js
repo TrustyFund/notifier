@@ -19,13 +19,7 @@ class NotificationSender {
   }
 
   createEmailTransporter(emailTransporterRequired) {
-    this.emailTransporter = nodemailer.createTransport({
-      auth: {
-        user: emailTransporterRequired.user,
-        pass: emailTransporterRequired.pass,
-      },
-      service: emailTransporterRequired.service
-    });
+    this.emailTransporter = nodemailer.createTransport(emailTransporterRequired);
   }
 
   upTelegramBot(telegramBotToken) {
