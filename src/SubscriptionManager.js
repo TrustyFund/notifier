@@ -73,6 +73,10 @@ class SubscriptionManager {
                 this.addClient(clientId, destinationType, destination, recount);
               }
             }
+            if (clientId === config.faucetUserId) {
+              const [realClientId, realDestinationType, realDestination] = destination.split(':');
+              this.addClient(realClientId, realDestinationType, realDestination, recount);
+            }
           }
         } else if (messageParts.length === 2) {
           const [stopMessage, destination] = messageParts;

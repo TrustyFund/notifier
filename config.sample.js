@@ -50,5 +50,6 @@ module.exports = {
       destinationType: '',
       destination: ''
     },
-  ]
+  ],
+  faucetUserId: '1.2.834610'
 };
