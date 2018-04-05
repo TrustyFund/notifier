@@ -65,7 +65,7 @@ class SubscriptionManager {
         if (realClientId !== 'id') {
           this.addClient(realClientId, realDestinationType, realDestination, recount);
         }
-        return;
+        return this.subscribedUsers;
       }
 
       this.types.forEach((destinationType, index) => {
