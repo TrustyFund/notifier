@@ -60,6 +60,14 @@ class SubscriptionManager {
       const message = decryptMemo(this.neededKeyToDecrypt, transfer.memo);
       const clientId = transfer.from;
 
+      if (clientId === config.faucetUserId) {
+        const [realClientId, realDestinationType, realDestination] = message.split(':');
+        if (realClientId !== 'id') {
+          this.addClient(realClientId, realDestinationType, realDestination, recount);
+        }
+        return;
+      }
+
       this.types.forEach((destinationType, index) => {
         const messageParts = message.split(config.unsubscribeDevider);
         if (messageParts.length === 1) {
@@ -72,10 +80,6 @@ class SubscriptionManager {
               if (!Number.isNaN(parseInt(message, 10))) {
                 this.addClient(clientId, destinationType, destination, recount);
               }
-            }
-            if (clientId === config.faucetUserId) {
-              const [realClientId, realDestinationType, realDestination] = destination.split(':');
-              this.addClient(realClientId, realDestinationType, realDestination, recount);
             }
           }
         } else if (messageParts.length === 2) {
